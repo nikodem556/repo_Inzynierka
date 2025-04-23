@@ -1,0 +1,9 @@
+"Tutorial_on_MIDI_and_Music_Synthesis_96-1-4_rc1"
+Ten tutorial pochodzi ze strony midi.org
+konkretny link: https://midi.org/tutorial-on-midi-and-music-synthesis?
+
+
+Bardzo dobra strona, gdzie mozna znalezc wiele przydatnych informacji, jest tam tez duzo wiecej dokumentacji.
+Tutaj więcej info: https://midi.org/specs
+
+==============================================================
