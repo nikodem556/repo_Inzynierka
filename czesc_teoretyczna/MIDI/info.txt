@@ -7,3 +7,37 @@ Bardzo dobra strona, gdzie mozna znalezc wiele przydatnych informacji, jest tam 
 Tutaj więcej info: https://midi.org/specs
 
 ==============================================================
+
+1. **Strony 1–2: Wprowadzenie**
+   - Definicja MIDI, cel tutoriala
+   - Podstawy przesyłania danych w muzyce elektronicznej
+
+2. **Strony 3–8: Format wiadomości MIDI**
+   - Omówienie struktury komunikatów MIDI
+   - Bajty statusu, bajty danych
+   - Przykłady komunikatów: Note On/Off, Control Change, Program Change
+
+3. **Strony 9–13: Zastosowania komunikatów MIDI**
+   - Jak używać MIDI do sterowania instrumentami
+   - Mapowanie komunikatów na parametry syntezatora
+
+4. **Strony 14–18: Wprowadzenie do syntezy dźwięku**
+   - Podstawowe typy syntez: addytywna, subtraktywna, FM
+   - Jak komunikaty MIDI wpływają na parametry dźwięku
+
+5. **Strony 19–21: Przykład działania**
+   - Jak MIDI jest wykorzystywane w typowym systemie: klawiatura + syntezator
+   - Prosty scenariusz z komentarzem technicznym
+
+6. **Strony 22–24: Dodatek i podsumowanie**
+   - Tabele kodów komunikatów MIDI
+   - Krótkie omówienie systemu czasu rzeczywistego w MIDI
+
+==============================================================
+
+"Summary of MIDI Messages" - pdf opisujący podstawowe komendy w formacie MIDI
+"Expanded Messages List (Status Bytes)" - pdf opisujący bardzo szczegółowo status bytes występujące w formacie MIDI, 
+Oba dostępne na stronie midi.org/specs
+
+==============================================================
+Mega fajna czeska strona: https://www.chd-el.cz/support/application/app001-midi/
