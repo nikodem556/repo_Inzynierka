@@ -1,0 +1,6 @@
+cechy naszego rozwiązania:
+mobilne, nie wymaga nic zewnętrznego
+tansze
+uniwersalne do wielu keyboardow
+
+Flowkey - musimy płacić, nie możemy importować, potrzebne urządzneie zewnętrzne, brak mozliwośc sparowania czasami, więc byłoby niedokładne, 

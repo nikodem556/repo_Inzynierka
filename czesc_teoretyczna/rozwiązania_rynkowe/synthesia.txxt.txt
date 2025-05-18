@@ -1,0 +1,24 @@
+Synthesia to popularna aplikacja edukacyjna do nauki gry na pianinie, która umożliwia użytkownikom granie utworów MIDI poprzez interaktywny interfejs przypominający gry rytmiczne, takie jak Guitar Hero.
+
+### 📜 Historia Synthesia
+
+Aplikacja została stworzona w 2006 roku przez Nicholasa Piegdona i początkowo nosiła nazwę **Piano Hero**. Ze względu na podobieństwo do nazwy gry Guitar Hero, firma Activision wystosowała w 2007 roku list z żądaniem zaprzestania używania tej nazwy. W odpowiedzi, autor zmienił nazwę aplikacji na **Synthesia**. ([Synthesia](https://zh.wikipedia.org/wiki/Synthesia?utm_source=chatgpt.com), [Synthesia](https://es.wikipedia.org/wiki/Synthesia?utm_source=chatgpt.com))
+
+Początkowo Synthesia była projektem open-source dostępnym na platformie SourceForge. Jednak w maju 2012 roku, ze względu na rosnące zainteresowanie i potencjał komercyjny, projekt przestał być rozwijany jako open-source. Ostatnia wersja open-source to 0.6.1b. ([Synthesia (video game)](https://en.wikipedia.org/wiki/Synthesia_%28video_game%29?utm_source=chatgpt.com))
+
+### 💰 Przejście na model płatny
+
+Po zakończeniu etapu open-source, Synthesia przeszła na model freemium. Użytkownicy mogli korzystać z podstawowych funkcji aplikacji za darmo, ale zaawansowane opcje, takie jak wyświetlanie nut czy tryby nauki, wymagały zakupu tzw. "Learning Pack". ([Synthesia (video game)](https://en.wikipedia.org/wiki/Synthesia_%28video_game%29?utm_source=chatgpt.com))
+
+W grudniu 2014 roku, wraz z wydaniem wersji 10, Synthesia całkowicie zrezygnowała z darmowego modelu. Od tego momentu, aby korzystać z pełnej funkcjonalności aplikacji, użytkownicy muszą dokonać jednorazowego zakupu. Obecnie koszt odblokowania pełnej wersji wynosi **29 USD**. Po dokonaniu zakupu, użytkownik otrzymuje dostęp do wszystkich funkcji aplikacji, w tym możliwość grania dowolnych utworów MIDI oraz korzystania z zaawansowanych trybów nauki. ([Synthesia (video game)](https://en.wikipedia.org/wiki/Synthesia_%28video_game%29?utm_source=chatgpt.com))
+
+### 🎹 Funkcje Synthesia
+
+- **Interaktywny interfejs**: Użytkownicy mogą grać utwory, obserwując spadające nuty na ekranie, co ułatwia naukę gry na pianinie.
+- **Tryb nauki**: Aplikacja oferuje tryby, które pomagają w nauce, takie jak "Melody Practice", gdzie utwór zatrzymuje się, dopóki użytkownik nie zagra poprawnej nuty.
+- **Kompatybilność z klawiaturami MIDI**: Synthesia współpracuje z klawiaturami MIDI, co pozwala na dokładne śledzenie postępów użytkownika.
+- **Obsługa plików MIDI i MusicXML**: Użytkownicy mogą importować własne utwory w formacie MIDI lub MusicXML. ([Synthesia (video game)](https://en.wikipedia.org/wiki/Synthesia_%28video_game%29?utm_source=chatgpt.com), [About Synthesia](https://synthesiagame.com/about?utm_source=chatgpt.com))
+
+Synthesia jest dostępna na platformach Windows, macOS, iOS oraz Android. Na urządzeniach mobilnych, takich jak iPad czy iPhone, aplikacja oferuje te same funkcje co wersja desktopowa, w tym możliwość podłączenia klawiatury MIDI.
+
+Jeśli potrzebujesz więcej informacji na temat Synthesia lub innych aplikacji do nauki gry na pianinie, chętnie pomogę! 
