@@ -2,3 +2,8 @@ Casio LK 160 Key Lighting
 
 nie daje możliwość wgrywania piosenek MIDI: https://support.casio.com/pdf/008/Web_LK240_165-E-1B.pdf
 https://music.casio.com/e/smf/ - casio tez cos tam ma, za pomocą karty SD
+
+rodzina zapewnia do 100 utworow, w najtańszym jest 50, wyświetlamy także dłonie dzięki czemu wiemy mniej więcej jak grać 
+najtańszy 660 zł, najdroższy 1100 zł
+
+na poszczególnych kanałach MIDI zazwyczaj zapisujemy różne ścieżki instrumentalne np. na jednym jest pianino, na drugim perksuja, a na 3 bas
