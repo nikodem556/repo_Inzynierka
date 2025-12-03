@@ -22,7 +22,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
+#include "usb_host.h"
+#include "usbh_midi.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,7 +45,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern USBH_HandleTypeDef hUsbHostFS;   // declared in usb_host.c
+extern ApplicationTypeDef Appli_state;  // also declared in usb_host.c
+ApplicationTypeDef prevState = APPLICATION_IDLE;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -52,7 +56,7 @@ static void MX_GPIO_Init(void);
 void MX_USB_HOST_Process(void);
 
 /* USER CODE BEGIN PFP */
-
+int _write(int file, char *ptr, int len);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -91,15 +95,75 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 2 */
-
+  printf("\r\n==== SN_Keyboard_assistant started (SWV printf active) ====\r\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
+    {
+      /* USB Host background processing (internally calls USBH_Process) */
+      MX_USB_HOST_Process();
+
+      /* Log application state changes (for easier debugging) */
+      if (Appli_state != prevState)
+      {
+        switch (Appli_state)
+        {
+        case APPLICATION_START:
+          printf("State: APPLICATION_START (device connected)\r\n");
+          break;
+        case APPLICATION_READY:
+          printf("State: APPLICATION_READY (MIDI class active)\r\n");
+          break;
+        case APPLICATION_DISCONNECT:
+          printf("State: APPLICATION_DISCONNECT (device disconnected)\r\n");
+          break;
+        default:
+          printf("State: %d\r\n", Appli_state);
+          break;
+        }
+        prevState = Appli_state;
+      }
+
+      /* When device is ready -> read MIDI events */
+      if (Appli_state == APPLICATION_READY)
+      {
+        uint8_t midi_event[4];
+
+        /* Try to get one USB-MIDI event (4 bytes) from the FIFO */
+        if (USBH_MIDI_GetEvent(&hUsbHostFS, midi_event) == USBH_OK)
+        {
+          printf("MIDI event: %02X %02X %02X %02X\r\n",
+                 midi_event[0], midi_event[1],
+                 midi_event[2], midi_event[3]);
+
+          /* Simple parsing: status + note from bytes 1-3 */
+          uint8_t status  = midi_event[1] & 0xF0;
+          uint8_t channel = midi_event[1] & 0x0F;
+          uint8_t note    = midi_event[2];
+          uint8_t vel     = midi_event[3];
+
+          if (status == 0x90 && vel != 0)
+          {
+            printf("NOTE ON  - ch:%u note:%u vel:%u\r\n",
+                   (unsigned)channel, (unsigned)note, (unsigned)vel);
+          }
+          else if (status == 0x80 || (status == 0x90 && vel == 0))
+          {
+            printf("NOTE OFF - ch:%u note:%u vel:%u\r\n",
+                   (unsigned)channel, (unsigned)note, (unsigned)vel);
+          }
+          else
+          {
+            printf("Other MIDI status: 0x%02X\r\n", status);
+          }
+
+          // Good breakpoint location to inspect midi_event[], status, note, vel
+        }
+        // else: FIFO empty – do nothing (no spam in logs)
+      }
     /* USER CODE END WHILE */
-    MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
   }
@@ -122,17 +186,23 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
+  /** Configure LSE Drive Capability
+  */
+  HAL_PWR_EnableBkUpAccess();
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
+
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.MSICalibrationValue = 0;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
-  RCC_OscInitStruct.PLL.PLLN = 40;
+  RCC_OscInitStruct.PLL.PLLN = 16;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -150,10 +220,14 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
+
+  /** Enable MSI Auto calibration
+  */
+  HAL_RCCEx_EnableMSIPLLMode();
 }
 
 /**
@@ -168,7 +242,10 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -176,7 +253,9 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+int __io_putchar(int ch) {
+    return ITM_SendChar(ch);
+}
 /* USER CODE END 4 */
 
 /**

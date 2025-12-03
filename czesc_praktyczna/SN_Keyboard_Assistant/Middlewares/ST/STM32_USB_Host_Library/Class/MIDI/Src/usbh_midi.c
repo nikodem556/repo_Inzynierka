@@ -80,28 +80,34 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
         uint8_t ep_addr = ep_desc->bEndpointAddress;
         uint8_t ep_type = ep_desc->bmAttributes & 0x03U;  /* Mask to get EP transfer type (bits 1..0) */
 
-        if ((ep_addr & 0x80U) && (ep_type == 0x02U || ep_type == 0x03U)) {
-            /* IN endpoint found. MIDI uses Bulk (0x02) or Interrupt (0x03) for IN according to spec.
+        if ((ep_addr & 0x80U) && (ep_type == 0x02U)) {
+            /* IN endpoint found. MIDI uses Bulk (0x02) for IN according to spec.
                Here we handle both as IN data source for MIDI messages. */
             MIDI_Handle->InEp = ep_addr;
             MIDI_Handle->InEpSize = ep_desc->wMaxPacketSize;
-            /* Allocate a pipe for IN endpoint and open it */
+            /* Allocate a pipe for IN endpoint and open it as BULK */
             MIDI_Handle->InPipe = USBH_AllocPipe(phost, MIDI_Handle->InEp);
-            USBH_OpenPipe(phost, MIDI_Handle->InPipe, MIDI_Handle->InEp,
-                          phost->device.address, phost->device.speed,
-                          ep_type == 0x02U ? USBH_EP_BULK : USBH_EP_INTR,
-                          MIDI_Handle->InEpSize);
+            USBH_OpenPipe(phost,
+                          MIDI_Handle->InPipe,
+						  MIDI_Handle->InEp,
+						  phost->device.address,
+						  phost->device.speed,
+						  USBH_EP_BULK,              /* <--- only BULK */
+						  MIDI_Handle->InEpSize);
             USBH_LL_SetToggle(phost, MIDI_Handle->InPipe, 0);  /* Initialize data toggle for IN pipe to 0 */
         }
-        else if (!(ep_addr & 0x80U) && (ep_type == 0x02U || ep_type == 0x03U)) {
+        else if (!(ep_addr & 0x80U) && (ep_type == 0x02U)) {
             /* OUT endpoint found (host-to-device MIDI OUT, not used in this minimal driver) */
             MIDI_Handle->OutEp = ep_addr;
             MIDI_Handle->OutEpSize = ep_desc->wMaxPacketSize;
-            /* Allocate and open pipe for OUT endpoint (opened for completeness, but we will not send data) */
+            /* Allocate and open pipe for OUT endpoint as BULK */
             MIDI_Handle->OutPipe = USBH_AllocPipe(phost, MIDI_Handle->OutEp);
-            USBH_OpenPipe(phost, MIDI_Handle->OutPipe, MIDI_Handle->OutEp,
-                          phost->device.address, phost->device.speed,
-                          ep_type == 0x02U ? USBH_EP_BULK : USBH_EP_INTR,
+            USBH_OpenPipe(phost,
+                          MIDI_Handle->OutPipe,
+                          MIDI_Handle->OutEp,
+                          phost->device.address,
+                          phost->device.speed,
+                          USBH_EP_BULK,              /* <--- only BULK */
                           MIDI_Handle->OutEpSize);
             USBH_LL_SetToggle(phost, MIDI_Handle->OutPipe, 0); /* Initialize data toggle for OUT pipe to 0 */
         }
