@@ -1,0 +1,6 @@
+../Middlewares/ST/STM32_USB_Host_Library/Class/MIDI/Src/usbh_midi.c:43:27:USBH_MIDI_Init	64	static
+../Middlewares/ST/STM32_USB_Host_Library/Class/MIDI/Src/usbh_midi.c:132:27:USBH_MIDI_DeInit	24	static
+../Middlewares/ST/STM32_USB_Host_Library/Class/MIDI/Src/usbh_midi.c:162:27:USBH_MIDI_ClassRequest	16	static
+../Middlewares/ST/STM32_USB_Host_Library/Class/MIDI/Src/usbh_midi.c:175:27:USBH_MIDI_Process	40	static
+../Middlewares/ST/STM32_USB_Host_Library/Class/MIDI/Src/usbh_midi.c:264:27:USBH_MIDI_SOFProcess	16	static
+../Middlewares/ST/STM32_USB_Host_Library/Class/MIDI/Src/usbh_midi.c:277:20:USBH_MIDI_GetEvent	24	static
