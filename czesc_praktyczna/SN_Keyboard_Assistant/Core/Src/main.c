@@ -46,8 +46,9 @@
 
 /* USER CODE BEGIN PV */
 extern USBH_HandleTypeDef hUsbHostFS;   // declared in usb_host.c
-extern ApplicationTypeDef Appli_state;  // also declared in usb_host.c
+extern ApplicationTypeDef Appli_state;  // declared in usb_host.c
 ApplicationTypeDef prevState = APPLICATION_IDLE;
+static uint32_t lastEmptyPrintTick = 0; // for throttled "FIFO empty" messages
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,15 +102,15 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-    {
-      /* USB Host background processing (internally calls USBH_Process) */
-      MX_USB_HOST_Process();
+  {
+    /* USB Host background processing */
+    MX_USB_HOST_Process();
 
-      /* Log application state changes (for easier debugging) */
-      if (Appli_state != prevState)
+    /* Log application state changes */
+    if (Appli_state != prevState)
+    {
+      switch (Appli_state)
       {
-        switch (Appli_state)
-        {
         case APPLICATION_START:
           printf("State: APPLICATION_START (device connected)\r\n");
           break;
@@ -122,23 +123,21 @@ int main(void)
         default:
           printf("State: %d\r\n", Appli_state);
           break;
-        }
-        prevState = Appli_state;
       }
+      prevState = Appli_state;
+    }
 
-      /* When device is ready -> read MIDI events */
-      if (Appli_state == APPLICATION_READY)
-      {
+    /* When device is started or ready -> read MIDI events */
+    if (Appli_state == APPLICATION_START || Appli_state == APPLICATION_READY)
+    {
         uint8_t midi_event[4];
 
-        /* Try to get one USB-MIDI event (4 bytes) from the FIFO */
         if (USBH_MIDI_GetEvent(&hUsbHostFS, midi_event) == USBH_OK)
         {
-          printf("MIDI event: %02X %02X %02X %02X\r\n",
-                 midi_event[0], midi_event[1],
-                 midi_event[2], midi_event[3]);
+          printf("MIDI event: %02X %02X %02X %02X (Appli_state=%d)\r\n",
+                 midi_event[0], midi_event[1], midi_event[2], midi_event[3],
+                 Appli_state);
 
-          /* Simple parsing: status + note from bytes 1-3 */
           uint8_t status  = midi_event[1] & 0xF0;
           uint8_t channel = midi_event[1] & 0x0F;
           uint8_t note    = midi_event[2];
@@ -158,11 +157,17 @@ int main(void)
           {
             printf("Other MIDI status: 0x%02X\r\n", status);
           }
-
-          // Good breakpoint location to inspect midi_event[], status, note, vel
         }
-        // else: FIFO empty – do nothing (no spam in logs)
-      }
+        else
+        {
+          if (HAL_GetTick() - lastEmptyPrintTick >= 1000)
+          {
+            //printf("No MIDI events (FIFO empty), Appli_state=%d\r\n", Appli_state);
+            lastEmptyPrintTick = HAL_GetTick();
+          }
+        }
+    }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
