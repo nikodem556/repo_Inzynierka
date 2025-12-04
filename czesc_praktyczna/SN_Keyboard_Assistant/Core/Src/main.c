@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include "usb_host.h"
 #include "usbh_midi.h"
+#include "notes.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -97,6 +98,28 @@ int main(void)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 2 */
   printf("\r\n==== SN_Keyboard_assistant started (SWV printf active) ====\r\n");
+
+  /* Example lesson-like array of names */
+  const char *lessonNames[] = { "C4", "D5", "E4", "CIS4" };
+  #define LESSON_LEN  (sizeof(lessonNames) / sizeof(lessonNames[0]))
+  uint8_t lessonNotes[LESSON_LEN];
+
+  NoteParseStatus st = NoteNameArray_ToMidi(lessonNames, LESSON_LEN, lessonNotes);
+  if (st != NOTE_OK)
+  {
+      printf("Error parsing lesson notes, status = %d\r\n", st);
+  }
+  else
+  {
+      printf("Lesson note names -> MIDI:\r\n");
+      for (size_t i = 0; i < LESSON_LEN; i++)
+      {
+          printf("  %s -> %u (0x%02X)\r\n",
+                 lessonNames[i],
+                 (unsigned)lessonNotes[i],
+                 (unsigned)lessonNotes[i]);
+      }
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */

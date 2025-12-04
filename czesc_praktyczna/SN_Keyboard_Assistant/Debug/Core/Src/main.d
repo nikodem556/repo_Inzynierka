@@ -34,7 +34,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h \
- ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h \
+ ../Core/Inc/notes.h
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
@@ -72,3 +73,4 @@ D:/STM32_CubeIDE_workspaces/SN_Keyboard_assistant/Middlewares/ST/STM32_USB_Host_
 ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
 ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h:
 ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h:
+../Core/Inc/notes.h:
