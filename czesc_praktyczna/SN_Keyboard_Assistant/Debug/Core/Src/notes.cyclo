@@ -1,5 +1,4 @@
-../Core/Src/notes.c:16:13:str_to_upper	3
-../Core/Src/notes.c:43:15:note_root_to_semitone	20
-../Core/Src/notes.c:80:17:NoteName_ToMidi	12
-../Core/Src/notes.c:127:17:NoteNameArray_ToMidi	5
-../Core/Src/notes.c:151:17:Midi_ToNoteName	16
+../Core/Src/notes.c:6:15:NoteName_MapRootToSemitone	20
+../Core/Src/notes.c:25:17:NoteName_ToMidi	13
+../Core/Src/notes.c:73:17:NoteNameArray_ToMidi	5
+../Core/Src/notes.c:86:17:Midi_ToNoteName	6

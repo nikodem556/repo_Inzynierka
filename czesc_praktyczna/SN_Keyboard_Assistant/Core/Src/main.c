@@ -26,6 +26,7 @@
 #include "usb_host.h"
 #include "usbh_midi.h"
 #include "notes.h"
+#include "lesson.h"   // Include the Lesson module
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -99,27 +100,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   printf("\r\n==== SN_Keyboard_assistant started (SWV printf active) ====\r\n");
 
-  /* Example lesson-like array of names */
-  const char *lessonNames[] = { "C4", "D5", "E4", "CIS4" };
-  #define LESSON_LEN  (sizeof(lessonNames) / sizeof(lessonNames[0]))
-  uint8_t lessonNotes[LESSON_LEN];
-
-  NoteParseStatus st = NoteNameArray_ToMidi(lessonNames, LESSON_LEN, lessonNotes);
-  if (st != NOTE_OK)
-  {
-      printf("Error parsing lesson notes, status = %d\r\n", st);
-  }
-  else
-  {
-      printf("Lesson note names -> MIDI:\r\n");
-      for (size_t i = 0; i < LESSON_LEN; i++)
-      {
-          printf("  %s -> %u (0x%02X)\r\n",
-                 lessonNames[i],
-                 (unsigned)lessonNotes[i],
-                 (unsigned)lessonNotes[i]);
-      }
-  }
+  // Initialize the lesson system (configure LEDs and convert lesson notes)
+  Lesson_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -152,35 +134,38 @@ int main(void)
 
     /* When device is started or ready -> read MIDI events */
     if (Appli_state == APPLICATION_START || Appli_state == APPLICATION_READY)
-    {
-        uint8_t midi_event[4];
-
-        if (USBH_MIDI_GetEvent(&hUsbHostFS, midi_event) == USBH_OK)
         {
-          printf("MIDI event: %02X %02X %02X %02X (Appli_state=%d)\r\n",
-                 midi_event[0], midi_event[1], midi_event[2], midi_event[3],
-                 Appli_state);
+            uint8_t midi_event[4];
+            if (USBH_MIDI_GetEvent(&hUsbHostFS, midi_event) == USBH_OK)
+            {
+                uint8_t status  = midi_event[1] & 0xF0;
+                uint8_t channel = midi_event[1] & 0x0F;
+                uint8_t note    = midi_event[2];
+                uint8_t vel     = midi_event[3];
 
-          uint8_t status  = midi_event[1] & 0xF0;
-          uint8_t channel = midi_event[1] & 0x0F;
-          uint8_t note    = midi_event[2];
-          uint8_t vel     = midi_event[3];
-
-          if (status == 0x90 && vel != 0)
-          {
-            printf("NOTE ON  - ch:%u note:%u vel:%u\r\n",
-                   (unsigned)channel, (unsigned)note, (unsigned)vel);
-          }
-          else if (status == 0x80 || (status == 0x90 && vel == 0))
-          {
-            printf("NOTE OFF - ch:%u note:%u vel:%u\r\n",
-                   (unsigned)channel, (unsigned)note, (unsigned)vel);
-          }
-          else
-          {
-            printf("Other MIDI status: 0x%02X\r\n", status);
-          }
-        }
+                if (status == 0x90 && vel != 0)  // NOTE ON event
+                {
+                    printf("NOTE ON  - ch:%u note:%u vel:%u\r\n",
+                           (unsigned)channel, (unsigned)note, (unsigned)vel);
+                    // (Optional) Convert the note number to name for debugging:
+                    char noteName[8];
+                    if (Midi_ToNoteName(note, noteName, sizeof(noteName)) == NOTE_OK) {
+                        printf("          --> Note name: %s\r\n", noteName);
+                    }
+                    // Pass the Note On event to the lesson system for handling
+                    Lesson_OnNoteOn(note, vel);
+                }
+                else if (status == 0x80 || (status == 0x90 && vel == 0))  // NOTE OFF event
+                {
+                    printf("NOTE OFF - ch:%u note:%u vel:%u\r\n",
+                           (unsigned)channel, (unsigned)note, (unsigned)vel);
+                }
+                else
+                {
+                    printf("Other MIDI status: 0x%02X (ch:%u data:%u)\r\n",
+                           (unsigned)status, (unsigned)channel, (unsigned)note);
+                }
+            }
         else
         {
           if (HAL_GetTick() - lastEmptyPrintTick >= 1000)
@@ -192,6 +177,7 @@ int main(void)
     }
 
     /* USER CODE END WHILE */
+    MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
   }
@@ -265,6 +251,7 @@ void SystemClock_Config(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
@@ -274,6 +261,36 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PC1 */
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PA0 PA1 PA4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

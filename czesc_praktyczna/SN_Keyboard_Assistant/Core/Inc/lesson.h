@@ -1,101 +1,38 @@
-/*
- * lesson.h
- *
- *  Created on: 5 gru 2025
- *      Author: nikod
- */
-
 #ifndef LESSON_H
 #define LESSON_H
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 /**
- * @brief Initialize lesson system.
- *
- * - Converts textual note names (e.g. "C4", "D5") to MIDI note numbers.
- * - Resets current step and LEDs.
- * - Must be called once at startup (after GPIO init).
+ * Initialize the lesson system.
+ * Converts the configured lesson note names to MIDI notes, resets internal state, and lights the first step's LED.
+ * Should be called once after GPIO and USB Host initialization.
  */
 void Lesson_Init(void);
 
 /**
- * @brief Reset lesson state back to the first step.
- *
- * - Sets current step to 0.
- * - Turns off all LEDs and lights the LED for the first expected note.
+ * Reset the lesson to the beginning.
+ * Turns off all LEDs, resets to the first lesson step, and lights the LED for the first note.
  */
 void Lesson_Reset(void);
 
 /**
- * @brief Handle a NOTE ON event from the MIDI keyboard.
+ * Handle a NOTE ON event from the MIDI keyboard.
+ * @param note MIDI note number of the Note On event.
+ * @param vel  Velocity of the Note On (not used for logic, but can be logged or extended for dynamics).
  *
- * Call this from your main loop whenever you detect a NOTE ON message.
- *
- * @param note  MIDI note number (0..127).
- * @param vel   Velocity (0..127) - can be used later if needed.
+ * This function checks if the given note matches the current expected lesson note.
+ * If correct, it advances the lesson (turning off the current LED and moving to the next note/LED, or finishing the lesson if it was the last note).
+ * If wrong, it triggers an error indication (flashes the error LED) and the lesson stays on the same note.
  */
 void Lesson_OnNoteOn(uint8_t note, uint8_t vel);
 
 /**
- * @brief Check if the current lesson sequence has been completed.
- *
- * @retval true  Lesson finished (all notes played correctly).
- * @retval false Lesson still in progress.
+ * Check if the lesson has been successfully finished.
+ * @return true if all notes in the lesson have been played correctly, false otherwise.
  */
 bool Lesson_IsFinished(void);
 
-/* -------------------------------------------------------------------------
- * Hardware abstraction for LEDs
- * -------------------------------------------------------------------------
- * You need to IMPLEMENT these functions in your project (e.g. in lesson.c
- * or a separate lesson_hw.c) using HAL_GPIO_WritePin or similar.
- *
- * The idea:
- *  - There are N "note LEDs" (one per lesson step).
- *  - There is 1 extra "error LED" to signal a wrong note.
- * -------------------------------------------------------------------------*/
-
-/**
- * @brief Turn off all LEDs used by the lesson system.
- */
-void Lesson_Leds_AllOff(void);
-
-/**
- * @brief Turn on LED for a given lesson step index (0-based).
- *
- * Example mapping:
- *  step 0 -> LED0
- *  step 1 -> LED1
- *  step 2 -> LED2
- *  step 3 -> LED3
- *
- * @param stepIndex Index of the lesson step (0..N-1).
- */
-void Lesson_Led_NoteOn(uint8_t stepIndex);
-
-/**
- * @brief Turn off LED for a given lesson step index (0-based).
- */
-void Lesson_Led_NoteOff(uint8_t stepIndex);
-
-/**
- * @brief Visual feedback for a wrong note.
- *
- * Example implementation:
- *  - Turn on "error LED" for a short time, then turn it off.
- *  - Or blink it a few times.
- */
-void Lesson_Led_ErrorFeedback(void);
-
-/**
- * @brief Visual feedback when the whole lesson is finished.
- *
- * Example implementation:
- *  - Blink all note LEDs.
- *  - Or turn on a "success LED".
- */
-void Lesson_Led_SuccessFeedback(void);
-
-#endif /* LESSON_H */
+#endif // LESSON_H

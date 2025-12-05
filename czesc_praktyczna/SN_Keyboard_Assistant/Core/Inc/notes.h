@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
+
 
 /**
  * @brief Status code returned by note name parser.

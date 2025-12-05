@@ -1,5 +1,4 @@
-../Core/Src/notes.c:16:13:str_to_upper	24	static
-../Core/Src/notes.c:43:15:note_root_to_semitone	16	static
-../Core/Src/notes.c:80:17:NoteName_ToMidi	48	static
-../Core/Src/notes.c:127:17:NoteNameArray_ToMidi	32	static
-../Core/Src/notes.c:151:17:Midi_ToNoteName	48	static
+../Core/Src/notes.c:6:15:NoteName_MapRootToSemitone	16	static
+../Core/Src/notes.c:25:17:NoteName_ToMidi	56	static
+../Core/Src/notes.c:73:17:NoteNameArray_ToMidi	32	static
+../Core/Src/notes.c:86:17:Midi_ToNoteName	56	static
