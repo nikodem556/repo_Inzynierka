@@ -1,4 +1,4 @@
-Core/Src/lesson.o: ../Core/Src/lesson.c ../Core/Inc/main.h \
+Core/Src/lcd_hd44780.o: ../Core/Src/lcd_hd44780.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h \
  ../Core/Inc/stm32l4xx_hal_conf.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_rcc.h \
@@ -26,8 +26,7 @@ Core/Src/lesson.o: ../Core/Src/lesson.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_usb.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h \
- ../Core/Inc/lesson.h ../Core/Inc/lcd_hd44780.h ../Core/Inc/button.h \
- ../Core/Inc/notes.h
+ ../Core/Inc/lcd_hd44780.h
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
@@ -56,7 +55,4 @@ Core/Src/lesson.o: ../Core/Src/lesson.c ../Core/Inc/main.h \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_usb.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h:
-../Core/Inc/lesson.h:
 ../Core/Inc/lcd_hd44780.h:
-../Core/Inc/button.h:
-../Core/Inc/notes.h:

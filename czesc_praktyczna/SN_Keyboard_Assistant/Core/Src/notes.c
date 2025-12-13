@@ -4,7 +4,7 @@
 
 /// Static helper: Map an uppercase note root string to a semitone number (0=C, 1=C♯/D♭, ..., 11=B/H).
 static int8_t NoteName_MapRootToSemitone(const char *root) {
-    // Note names mapping (German/English combined notation)
+    // Note names mapping (English notation)
     if (strcmp(root, "C") == 0)   return 0;
     if (strcmp(root, "CIS") == 0 || strcmp(root, "DES") == 0)  return 1;   // C♯ or D♭
     if (strcmp(root, "D") == 0)   return 2;
@@ -17,7 +17,7 @@ static int8_t NoteName_MapRootToSemitone(const char *root) {
     if (strcmp(root, "A") == 0)   return 9;
     if (strcmp(root, "AIS") == 0) return 10;  // A♯ (B♭ in English)
     if (strcmp(root, "B") == 0 || strcmp(root, "BES") == 0 || strcmp(root, "HES") == 0)
-        return 10;  // In German/Polish notation, "B" or "Bes"/"Hes" = B♭ (semitone 10)
+        return 10;  // In Polish notation, "B" or "Bes"/"Hes" = B (semitone 10)
     if (strcmp(root, "H") == 0)   return 11;  // H = B natural
     return -1; // not a valid note name
 }

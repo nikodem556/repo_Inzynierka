@@ -1,196 +1,192 @@
-/*
- * lesson.c
- *
- *  Created on: 5 gru 2025
- *      Author: nikod
- */
-
-
+#include "main.h"          // For LED and button GPIO definitions and HAL functions
 #include "lesson.h"
-#include "notes.h"    // for NoteNameArray_ToMidi and Midi_ToNoteName
-#include "main.h"     // for HAL GPIO definitions (GPIO_TypeDef, HAL_Delay, etc)
+#include "lcd_hd44780.h"
+#include "button.h"
+#include "notes.h"         // Provides NoteName_ToMidi and NOTE_OK
+#include <string.h>
+#include <stdio.h>
 
+// LED blink duration (milliseconds)
+#define LED_BLINK_DURATION 100
 
-/* Configuration macros: Lesson notes and LED pins */
-
-// Define the lesson note sequence (as note name strings).
-// You can change these to alter the lesson without changing code logic.
-#define LESSON_STEP1_NAME   "C4"
-#define LESSON_STEP2_NAME   "D5"
-#define LESSON_STEP3_NAME   "E4"
-#define LESSON_STEP4_NAME   "CIS4"
-
-// Define LED ports and pins corresponding to each lesson step:
-#define LESSON_LED1_PORT    GPIOA
-#define LESSON_LED1_PIN     GPIO_PIN_0  // e.g., PA0
-#define LESSON_LED2_PORT    GPIOA
-#define LESSON_LED2_PIN     GPIO_PIN_1  // e.g., PA1
-#define LESSON_LED3_PORT    GPIOA
-#define LESSON_LED3_PIN     GPIO_PIN_4  // e.g., PA4
-#define LESSON_LED4_PORT    GPIOB
-#define LESSON_LED4_PIN     GPIO_PIN_0  // e.g., PB0
-
-// Define an LED for error feedback (lights on wrong note)
-#define LESSON_ERROR_LED_PORT  GPIOC
-#define LESSON_ERROR_LED_PIN   GPIO_PIN_1  // e.g., PC1
-
-// Internal arrays for step LED ports/pins (for easier iteration)
-static GPIO_TypeDef * const noteLedPorts[] = {
-    LESSON_LED1_PORT, LESSON_LED2_PORT, LESSON_LED3_PORT, LESSON_LED4_PORT
+// Song definition: each step is a chord represented by note names (null-terminated list for each chord)
+static const char *SONG_STEPS_NAMES[][MAX_CHORD_NOTES + 1] = {
+    {"C4", NULL},                  // Step 1: single note C4
+    {"C4", "E4", "G4", NULL},      // Step 2: C4-E4-G4 chord (C major triad)
+    {"F4", "A4", "C5", NULL},      // Step 3: F4-A4-C5 chord (F major triad)
+    {"G4", "B4", "D5", NULL},      // Step 4: G4-B4-D5 chord (G major triad)
+    {"C4", "E4", "G4", NULL}       // Step 5: C4-E4-G4 chord (repeat C major)
 };
-static const uint16_t noteLedPins[] = {
-    LESSON_LED1_PIN, LESSON_LED2_PIN, LESSON_LED3_PIN, LESSON_LED4_PIN
-};
+#define LESSON_STEPS_COUNT  (sizeof(SONG_STEPS_NAMES) / sizeof(SONG_STEPS_NAMES[0]))
 
-// Determine number of steps in the lesson (size of lessonNames array defined below)
-#define LESSON_STEP_COUNT  (sizeof(noteLedPins) / sizeof(noteLedPins[0]))
+// MIDI note numbers for each step (to be filled in Lesson_Init)
+static uint8_t songStepsMidi[LESSON_STEPS_COUNT][MAX_CHORD_NOTES];
+static uint8_t stepNoteCount[LESSON_STEPS_COUNT];
 
-// Internal lesson note data
-static const char *lessonNames[] = {
-    LESSON_STEP1_NAME, LESSON_STEP2_NAME, LESSON_STEP3_NAME, LESSON_STEP4_NAME
-};
-static uint8_t lessonNotes[LESSON_STEP_COUNT];  // MIDI note numbers for each lesson step
+// Lesson state variables
+static uint8_t currentStep = 0;
+static uint8_t lessonCompleted = 0;
+static uint32_t totalNoteOnCount = 0;
+static uint32_t correctNoteOnCount = 0;
+static uint8_t stepNotesPlayedFlags[MAX_CHORD_NOTES];  // Flags to mark played notes in the current chord
 
-// Internal state tracking
-static size_t currentStep = 0;
-static bool lessonFinished = false;
-
-/* Static helper functions for LED control */
-
-/// Turn **all** LEDs (step LEDs and the error LED) off.
-static void Lesson_Leds_AllOff(void) {
-    for (size_t i = 0; i < LESSON_STEP_COUNT; ++i) {
-        HAL_GPIO_WritePin(noteLedPorts[i], noteLedPins[i], GPIO_PIN_RESET);
-    }
-    HAL_GPIO_WritePin(LESSON_ERROR_LED_PORT, LESSON_ERROR_LED_PIN, GPIO_PIN_RESET);
-}
-
-/// Turn on the LED for a specific lesson step index.
-static void Lesson_Led_NoteOn(size_t stepIndex) {
-    if (stepIndex < LESSON_STEP_COUNT) {
-        HAL_GPIO_WritePin(noteLedPorts[stepIndex], noteLedPins[stepIndex], GPIO_PIN_SET);
-    }
-}
-
-/// Turn off the LED for a specific lesson step index.
-static void Lesson_Led_NoteOff(size_t stepIndex) {
-    if (stepIndex < LESSON_STEP_COUNT) {
-        HAL_GPIO_WritePin(noteLedPorts[stepIndex], noteLedPins[stepIndex], GPIO_PIN_RESET);
-    }
-}
-
-/// Briefly flash the error LED to indicate a wrong note (blocking delay).
-static void Lesson_Led_ErrorFeedback(void) {
-    // Turn on error LED, wait, then turn it off
-    HAL_GPIO_WritePin(LESSON_ERROR_LED_PORT, LESSON_ERROR_LED_PIN, GPIO_PIN_SET);
-    HAL_Delay(100);  // ~100 ms blink; in a real application, consider using a timer or non-blocking method
-    HAL_GPIO_WritePin(LESSON_ERROR_LED_PORT, LESSON_ERROR_LED_PIN, GPIO_PIN_RESET);
-}
-
-/// Flash all note LEDs in unison to indicate lesson success (blocking pattern).
-static void Lesson_Led_SuccessFeedback(void) {
-    // Blink all step LEDs together a few times
-    for (int i = 0; i < 3; ++i) {
-        // Turn all note LEDs on
-        for (size_t j = 0; j < LESSON_STEP_COUNT; ++j) {
-            HAL_GPIO_WritePin(noteLedPorts[j], noteLedPins[j], GPIO_PIN_SET);
-        }
-        HAL_Delay(200);
-        // Turn all note LEDs off
-        for (size_t j = 0; j < LESSON_STEP_COUNT; ++j) {
-            HAL_GPIO_WritePin(noteLedPorts[j], noteLedPins[j], GPIO_PIN_RESET);
-        }
-        HAL_Delay(200);
-    }
-    // Ensure error LED is off as well (just in case)
-    HAL_GPIO_WritePin(LESSON_ERROR_LED_PORT, LESSON_ERROR_LED_PIN, GPIO_PIN_RESET);
-}
-
-/* Public API function implementations */
+// LED blink timing control
+static uint32_t greenLedOffTime = 0;
+static uint32_t redLedOffTime = 0;
 
 void Lesson_Init(void) {
-    // Convert lesson note name strings to MIDI note numbers using NoteNameArray_ToMidi
-    NoteParseStatus convStatus = NoteNameArray_ToMidi(lessonNames, LESSON_STEP_COUNT, lessonNotes);
-    if (convStatus != NOTE_OK) {
-        printf("Lesson_Init: Error parsing lesson note names (status = %d)\r\n", convStatus);
-        // If conversion failed, mark lesson as finished to ignore input (to avoid undefined behavior)
-        lessonFinished = true;
-        Lesson_Leds_AllOff();
-        return;
+    // Convert note name strings to MIDI note numbers for each step
+    for (uint8_t step = 0; step < LESSON_STEPS_COUNT; ++step) {
+        uint8_t count = 0;
+        for (uint8_t i = 0; i < MAX_CHORD_NOTES && SONG_STEPS_NAMES[step][i] != NULL; ++i) {
+            uint8_t midiVal;
+            if (NoteName_ToMidi(SONG_STEPS_NAMES[step][i], &midiVal) == NOTE_OK) {
+                songStepsMidi[step][count++] = midiVal;
+            }
+        }
+        stepNoteCount[step] = count;
     }
-
-    // Initialize state
+    // Initialize LED states
+    HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(RED_LED_GPIO_Port,   RED_LED_Pin,   GPIO_PIN_RESET);
+    // Initialize lesson state variables
     currentStep = 0;
-    lessonFinished = false;
-    // Initialize LEDs: all off, then turn on the LED for the first expected note
-    Lesson_Leds_AllOff();
-    if (LESSON_STEP_COUNT > 0) {
-        Lesson_Led_NoteOn(0);
+    lessonCompleted = 0;
+    totalNoteOnCount = 0;
+    correctNoteOnCount = 0;
+    memset(stepNotesPlayedFlags, 0, sizeof(stepNotesPlayedFlags));
+    // Clear LCD and display the first step
+    LCD_Clear();
+    char line[17];
+    snprintf(line, sizeof(line), "Step %d:", currentStep + 1);
+    LCD_SetCursor(0, 0);
+    LCD_Print(line);
+    LCD_SetCursor(1, 0);
+    line[0] = '\0';
+    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
+        strncat(line, SONG_STEPS_NAMES[currentStep][i], sizeof(line) - strlen(line) - 1);
+        if (i < stepNoteCount[currentStep] - 1) {
+            strncat(line, " ", sizeof(line) - strlen(line) - 1);
+        }
     }
-    printf("Lesson_Init: Ready - first note is %s (MIDI %u)\r\n",
-           lessonNames[0], (unsigned)lessonNotes[0]);
+    LCD_Print(line);
 }
 
 void Lesson_Reset(void) {
-    // Reset state to the beginning of the lesson
+    // Reset lesson progress and counters
     currentStep = 0;
-    lessonFinished = false;
-    // Turn off all LEDs and light the first step's LED
-    Lesson_Leds_AllOff();
-    if (LESSON_STEP_COUNT > 0) {
-        Lesson_Led_NoteOn(0);
+    lessonCompleted = 0;
+    totalNoteOnCount = 0;
+    correctNoteOnCount = 0;
+    // Reset played-notes flags for the first chord
+    memset(stepNotesPlayedFlags, 0, sizeof(stepNotesPlayedFlags));
+    // Turn off LEDs
+    HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(RED_LED_GPIO_Port,   RED_LED_Pin,   GPIO_PIN_RESET);
+    greenLedOffTime = 0;
+    redLedOffTime = 0;
+    // Refresh the LCD to show the first step again
+    LCD_Clear();
+    char line[17];
+    snprintf(line, sizeof(line), "Step %d:", currentStep + 1);
+    LCD_SetCursor(0, 0);
+    LCD_Print(line);
+    LCD_SetCursor(1, 0);
+    line[0] = '\0';
+    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
+        strncat(line, SONG_STEPS_NAMES[currentStep][i], sizeof(line) - strlen(line) - 1);
+        if (i < stepNoteCount[currentStep] - 1) {
+            strncat(line, " ", sizeof(line) - strlen(line) - 1);
+        }
     }
-    printf("Lesson_Reset: Back to step 1 (note %s)\r\n", lessonNames[0]);
+    LCD_Print(line);
 }
 
-void Lesson_OnNoteOn(uint8_t note, uint8_t vel) {
-    if (lessonFinished) {
-        // Lesson already completed – optionally, we could flash a success indicator again.
-        // For now, just ignore further notes.
+void Lesson_OnNoteOn(uint8_t midiNote) {
+    if (lessonCompleted) {
+        // Ignore inputs if lesson already completed (waiting for reset)
         return;
     }
-
-    // Get the expected MIDI note for the current step
-    uint8_t expectedNote = lessonNotes[currentStep];
-    if (note == expectedNote) {
-        // Correct note played
-        char noteNameBuf[8];
-        Midi_ToNoteName(note, noteNameBuf, sizeof(noteNameBuf));
-        printf("Lesson: Correct! Note %s (MIDI %u) was the expected note.\r\n",
-               noteNameBuf, (unsigned)note);
-
-        // Turn off LED for this step
-        Lesson_Led_NoteOff(currentStep);
-        // Advance to next step
-        currentStep++;
-        if (currentStep >= LESSON_STEP_COUNT) {
-            // All notes completed
-            lessonFinished = true;
-            printf("Lesson: All %d notes correct! Lesson completed.\r\n", (int)LESSON_STEP_COUNT);
-            // All LEDs off and success indication
-            Lesson_Leds_AllOff();
-            Lesson_Led_SuccessFeedback();
-        } else {
-            // Turn on LED for the next expected note
-            Lesson_Led_NoteOn(currentStep);
-            // (Optional debug) print next expected note name
-            printf("Lesson: Next note to play is %s (MIDI %u)\r\n",
-                   lessonNames[currentStep], (unsigned)lessonNotes[currentStep]);
+    // Count every Note On event
+    totalNoteOnCount++;
+    uint8_t correct = 0;
+    // Check if the incoming note is part of the current chord and not yet played
+    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
+        if (midiNote == songStepsMidi[currentStep][i] && stepNotesPlayedFlags[i] == 0) {
+            // Correct note hit
+            stepNotesPlayedFlags[i] = 1;
+            correctNoteOnCount++;
+            correct = 1;
+            // Blink green LED for a correct note
+            HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_SET);
+            greenLedOffTime = HAL_GetTick() + LED_BLINK_DURATION;
+            break;
         }
-    } else {
-        // Wrong note played
-        char expName[8], gotName[8];
-        Midi_ToNoteName(expectedNote, expName, sizeof(expName));
-        Midi_ToNoteName(note, gotName, sizeof(gotName));
-        printf("Lesson: Wrong note! Expected %s (MIDI %u) but got %s (MIDI %u).\r\n",
-               expName, (unsigned)expectedNote, gotName, (unsigned)note);
-
-        // Indicate error (flash error LED). The current step LED stays on.
-        Lesson_Led_ErrorFeedback();
-        // Note: currentStep remains the same, user should try the same note again.
+    }
+    if (!correct) {
+        // Note is not part of the chord (or was already played) -> wrong note
+        HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
+        redLedOffTime = HAL_GetTick() + LED_BLINK_DURATION;
+    }
+    // Check if the current chord is now fully played
+    uint8_t chordComplete = 1;
+    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
+        if (stepNotesPlayedFlags[i] == 0) {
+            chordComplete = 0;
+            break;
+        }
+    }
+    if (chordComplete) {
+        // Advance to next step (chord)
+        currentStep++;
+        if (currentStep >= LESSON_STEPS_COUNT) {
+            // All steps are completed – lesson finished
+            lessonCompleted = 1;
+            // Display accuracy and prompt to press reset on LCD
+            LCD_Clear();
+            char line1[17], line2[17];
+            uint32_t accuracyPercent = 0;
+            if (totalNoteOnCount > 0) {
+                accuracyPercent = (correctNoteOnCount * 100) / totalNoteOnCount;
+            }
+            snprintf(line1, sizeof(line1), "Accuracy %u/%u", correctNoteOnCount, totalNoteOnCount);
+            snprintf(line2, sizeof(line2), "%u%% Press Reset", accuracyPercent);
+            LCD_SetCursor(0, 0);
+            LCD_Print(line1);
+            LCD_SetCursor(1, 0);
+            LCD_Print(line2);
+        } else {
+            // Prepare for the next chord
+            memset(stepNotesPlayedFlags, 0, sizeof(stepNotesPlayedFlags));
+            // Update LCD to show the next step's chord
+            LCD_Clear();
+            char line[17];
+            snprintf(line, sizeof(line), "Step %d:", currentStep + 1);
+            LCD_SetCursor(0, 0);
+            LCD_Print(line);
+            LCD_SetCursor(1, 0);
+            line[0] = '\0';
+            for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
+                strncat(line, SONG_STEPS_NAMES[currentStep][i], sizeof(line) - strlen(line) - 1);
+                if (i < stepNoteCount[currentStep] - 1) {
+                    strncat(line, " ", sizeof(line) - strlen(line) - 1);
+                }
+            }
+            LCD_Print(line);
+        }
     }
 }
 
-bool Lesson_IsFinished(void) {
-    return lessonFinished;
+void Lesson_Tick(void) {
+    uint32_t now = HAL_GetTick();
+    // Turn off the green LED if its blink interval has passed
+    if (greenLedOffTime && now >= greenLedOffTime) {
+        HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
+        greenLedOffTime = 0;
+    }
+    // Turn off the red LED if its blink interval has passed
+    if (redLedOffTime && now >= redLedOffTime) {
+        HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
+        redLedOffTime = 0;
+    }
 }
