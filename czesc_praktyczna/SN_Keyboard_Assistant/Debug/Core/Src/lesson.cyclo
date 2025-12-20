@@ -1,4 +1,6 @@
-../Core/Src/lesson.c:37:6:Lesson_Init	7
-../Core/Src/lesson.c:75:6:Lesson_Reset	3
-../Core/Src/lesson.c:105:6:Lesson_OnNoteOn	13
-../Core/Src/lesson.c:180:6:Lesson_Tick	5
+../Core/Src/lesson.c:43:13:Lesson_DisplayStep	3
+../Core/Src/lesson.c:65:13:Lesson_DisplaySummary	2
+../Core/Src/lesson.c:88:6:Lesson_Init	5
+../Core/Src/lesson.c:116:6:Lesson_Reset	1
+../Core/Src/lesson.c:136:6:Lesson_OnNoteOn	10
+../Core/Src/lesson.c:193:6:Lesson_Tick	5

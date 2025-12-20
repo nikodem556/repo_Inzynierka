@@ -1,0 +1,15 @@
+../Core/Src/grove_lcd16x2_i2c.c:32:24:lcd_hal_addr	16	static
+../Core/Src/grove_lcd16x2_i2c.c:38:26:lcd_write_cmd	40	static
+../Core/Src/grove_lcd16x2_i2c.c:52:26:lcd_write_data	40	static
+../Core/Src/grove_lcd16x2_i2c.c:65:19:GroveLCD_Init	32	static
+../Core/Src/grove_lcd16x2_i2c.c:106:19:GroveLCD_Clear	24	static
+../Core/Src/grove_lcd16x2_i2c.c:113:19:GroveLCD_Home	24	static
+../Core/Src/grove_lcd16x2_i2c.c:120:19:GroveLCD_SetCursor	24	static
+../Core/Src/grove_lcd16x2_i2c.c:132:19:GroveLCD_WriteChar	16	static
+../Core/Src/grove_lcd16x2_i2c.c:137:19:GroveLCD_Print	24	static
+../Core/Src/grove_lcd16x2_i2c.c:152:19:GroveLCD_DisplayOn	16	static
+../Core/Src/grove_lcd16x2_i2c.c:157:19:GroveLCD_DisplayOff	16	static
+../Core/Src/grove_lcd16x2_i2c.c:162:19:GroveLCD_CursorOn	16	static
+../Core/Src/grove_lcd16x2_i2c.c:167:19:GroveLCD_CursorOff	16	static
+../Core/Src/grove_lcd16x2_i2c.c:172:19:GroveLCD_BlinkOn	16	static
+../Core/Src/grove_lcd16x2_i2c.c:177:19:GroveLCD_BlinkOff	16	static

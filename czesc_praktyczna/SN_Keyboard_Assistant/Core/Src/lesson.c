@@ -1,10 +1,13 @@
 #include "main.h"          // For LED and button GPIO definitions and HAL functions
 #include "lesson.h"
-#include "lcd_hd44780.h"
+#include "grove_lcd16x2_i2c.h"
 #include "button.h"
 #include "notes.h"         // Provides NoteName_ToMidi and NOTE_OK
 #include <string.h>
 #include <stdio.h>
+
+/* The Grove LCD instance is created in main.c */
+extern GroveLCD_t lcd;
 
 // LED blink duration (milliseconds)
 #define LED_BLINK_DURATION 100
@@ -34,6 +37,54 @@ static uint8_t stepNotesPlayedFlags[MAX_CHORD_NOTES];  // Flags to mark played n
 static uint32_t greenLedOffTime = 0;
 static uint32_t redLedOffTime = 0;
 
+/**
+ * @brief Draw current lesson step (or its chord) on the Grove 16x2 LCD.
+ */
+static void Lesson_DisplayStep(void) {
+    GroveLCD_Clear(&lcd);
+
+    char line[17];
+    snprintf(line, sizeof(line), "Step %d:", currentStep + 1);
+    GroveLCD_SetCursor(&lcd, 0, 0);
+    GroveLCD_Print(&lcd, line);
+
+    GroveLCD_SetCursor(&lcd, 1, 0);
+    line[0] = '\0';
+    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
+        strncat(line, SONG_STEPS_NAMES[currentStep][i], sizeof(line) - strlen(line) - 1);
+        if (i < stepNoteCount[currentStep] - 1) {
+            strncat(line, " ", sizeof(line) - strlen(line) - 1);
+        }
+    }
+    GroveLCD_Print(&lcd, line);
+}
+
+/**
+ * @brief Draw lesson summary on the Grove 16x2 LCD.
+ */
+static void Lesson_DisplaySummary(void) {
+    GroveLCD_Clear(&lcd);
+
+    char line1[17];
+    char line2[17];
+    uint32_t accuracyPercent = 0;
+    if (totalNoteOnCount > 0) {
+        accuracyPercent = (correctNoteOnCount * 100U) / totalNoteOnCount;
+    }
+
+    // Shortened to fit 16 chars reliably
+    snprintf(line1, sizeof(line1), "Acc %lu/%lu",
+             (unsigned long)correctNoteOnCount,
+             (unsigned long)totalNoteOnCount);
+    snprintf(line2, sizeof(line2), "%lu%% Reset",
+             (unsigned long)accuracyPercent);
+
+    GroveLCD_SetCursor(&lcd, 0, 0);
+    GroveLCD_Print(&lcd, line1);
+    GroveLCD_SetCursor(&lcd, 1, 0);
+    GroveLCD_Print(&lcd, line2);
+}
+
 void Lesson_Init(void) {
     // Convert note name strings to MIDI note numbers for each step
     for (uint8_t step = 0; step < LESSON_STEPS_COUNT; ++step) {
@@ -46,30 +97,20 @@ void Lesson_Init(void) {
         }
         stepNoteCount[step] = count;
     }
+
     // Initialize LED states
     HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(RED_LED_GPIO_Port,   RED_LED_Pin,   GPIO_PIN_RESET);
+
     // Initialize lesson state variables
     currentStep = 0;
     lessonCompleted = 0;
     totalNoteOnCount = 0;
     correctNoteOnCount = 0;
     memset(stepNotesPlayedFlags, 0, sizeof(stepNotesPlayedFlags));
-    // Clear LCD and display the first step
-    LCD_Clear();
-    char line[17];
-    snprintf(line, sizeof(line), "Step %d:", currentStep + 1);
-    LCD_SetCursor(0, 0);
-    LCD_Print(line);
-    LCD_SetCursor(1, 0);
-    line[0] = '\0';
-    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
-        strncat(line, SONG_STEPS_NAMES[currentStep][i], sizeof(line) - strlen(line) - 1);
-        if (i < stepNoteCount[currentStep] - 1) {
-            strncat(line, " ", sizeof(line) - strlen(line) - 1);
-        }
-    }
-    LCD_Print(line);
+
+    // Display the first step
+    Lesson_DisplayStep();
 }
 
 void Lesson_Reset(void) {
@@ -78,28 +119,18 @@ void Lesson_Reset(void) {
     lessonCompleted = 0;
     totalNoteOnCount = 0;
     correctNoteOnCount = 0;
+
     // Reset played-notes flags for the first chord
     memset(stepNotesPlayedFlags, 0, sizeof(stepNotesPlayedFlags));
+
     // Turn off LEDs
     HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(RED_LED_GPIO_Port,   RED_LED_Pin,   GPIO_PIN_RESET);
     greenLedOffTime = 0;
     redLedOffTime = 0;
+
     // Refresh the LCD to show the first step again
-    LCD_Clear();
-    char line[17];
-    snprintf(line, sizeof(line), "Step %d:", currentStep + 1);
-    LCD_SetCursor(0, 0);
-    LCD_Print(line);
-    LCD_SetCursor(1, 0);
-    line[0] = '\0';
-    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
-        strncat(line, SONG_STEPS_NAMES[currentStep][i], sizeof(line) - strlen(line) - 1);
-        if (i < stepNoteCount[currentStep] - 1) {
-            strncat(line, " ", sizeof(line) - strlen(line) - 1);
-        }
-    }
-    LCD_Print(line);
+    Lesson_DisplayStep();
 }
 
 void Lesson_OnNoteOn(uint8_t midiNote) {
@@ -107,9 +138,12 @@ void Lesson_OnNoteOn(uint8_t midiNote) {
         // Ignore inputs if lesson already completed (waiting for reset)
         return;
     }
+
     // Count every Note On event
     totalNoteOnCount++;
+
     uint8_t correct = 0;
+
     // Check if the incoming note is part of the current chord and not yet played
     for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
         if (midiNote == songStepsMidi[currentStep][i] && stepNotesPlayedFlags[i] == 0) {
@@ -117,17 +151,20 @@ void Lesson_OnNoteOn(uint8_t midiNote) {
             stepNotesPlayedFlags[i] = 1;
             correctNoteOnCount++;
             correct = 1;
+
             // Blink green LED for a correct note
             HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_SET);
             greenLedOffTime = HAL_GetTick() + LED_BLINK_DURATION;
             break;
         }
     }
+
     if (!correct) {
-        // Note is not part of the chord (or was already played) -> wrong note
+        // Wrong note
         HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
         redLedOffTime = HAL_GetTick() + LED_BLINK_DURATION;
     }
+
     // Check if the current chord is now fully played
     uint8_t chordComplete = 1;
     for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
@@ -136,54 +173,32 @@ void Lesson_OnNoteOn(uint8_t midiNote) {
             break;
         }
     }
+
     if (chordComplete) {
         // Advance to next step (chord)
         currentStep++;
+
         if (currentStep >= LESSON_STEPS_COUNT) {
-            // All steps are completed – lesson finished
+            // Lesson finished
             lessonCompleted = 1;
-            // Display accuracy and prompt to press reset on LCD
-            LCD_Clear();
-            char line1[17], line2[17];
-            uint32_t accuracyPercent = 0;
-            if (totalNoteOnCount > 0) {
-                accuracyPercent = (correctNoteOnCount * 100) / totalNoteOnCount;
-            }
-            snprintf(line1, sizeof(line1), "Accuracy %u/%u", correctNoteOnCount, totalNoteOnCount);
-            snprintf(line2, sizeof(line2), "%u%% Press Reset", accuracyPercent);
-            LCD_SetCursor(0, 0);
-            LCD_Print(line1);
-            LCD_SetCursor(1, 0);
-            LCD_Print(line2);
+            Lesson_DisplaySummary();
         } else {
             // Prepare for the next chord
             memset(stepNotesPlayedFlags, 0, sizeof(stepNotesPlayedFlags));
-            // Update LCD to show the next step's chord
-            LCD_Clear();
-            char line[17];
-            snprintf(line, sizeof(line), "Step %d:", currentStep + 1);
-            LCD_SetCursor(0, 0);
-            LCD_Print(line);
-            LCD_SetCursor(1, 0);
-            line[0] = '\0';
-            for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i) {
-                strncat(line, SONG_STEPS_NAMES[currentStep][i], sizeof(line) - strlen(line) - 1);
-                if (i < stepNoteCount[currentStep] - 1) {
-                    strncat(line, " ", sizeof(line) - strlen(line) - 1);
-                }
-            }
-            LCD_Print(line);
+            Lesson_DisplayStep();
         }
     }
 }
 
 void Lesson_Tick(void) {
     uint32_t now = HAL_GetTick();
+
     // Turn off the green LED if its blink interval has passed
     if (greenLedOffTime && now >= greenLedOffTime) {
         HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
         greenLedOffTime = 0;
     }
+
     // Turn off the red LED if its blink interval has passed
     if (redLedOffTime && now >= redLedOffTime) {
         HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);

@@ -24,6 +24,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash_ramfunc.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_hcd.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_usb.h \
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c.h \
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h \
  ../USB_HOST/App/usb_host.h \
@@ -35,7 +37,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h \
- ../Core/Inc/notes.h ../Core/Inc/lesson.h ../Core/Inc/lcd_hd44780.h \
+ ../Core/Inc/notes.h ../Core/Inc/lesson.h ../Core/Inc/grove_lcd16x2_i2c.h \
  ../Core/Inc/button.h
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
@@ -63,6 +65,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_flash_ramfunc.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_hcd.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_usb.h:
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c.h:
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c_ex.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h:
 ../USB_HOST/App/usb_host.h:
@@ -76,5 +80,5 @@ D:/STM32_CubeIDE_workspaces/SN_Keyboard_assistant/Middlewares/ST/STM32_USB_Host_
 ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h:
 ../Core/Inc/notes.h:
 ../Core/Inc/lesson.h:
-../Core/Inc/lcd_hd44780.h:
+../Core/Inc/grove_lcd16x2_i2c.h:
 ../Core/Inc/button.h:
