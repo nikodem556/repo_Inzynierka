@@ -11,6 +11,7 @@
 #define LCD_CMD_DISPLAYCTRL     (0x08)
 #define LCD_CMD_FUNCTIONSET     (0x20)
 #define LCD_CMD_SET_DDRAM       (0x80)
+#define LCD_CMD_SET_CGRAM       (0x40)
 
 /* Entry mode flags */
 #define LCD_ENTRY_INC           (0x02)
@@ -145,6 +146,30 @@ HAL_StatusTypeDef GroveLCD_Print(GroveLCD_t *lcd, const char *s)
         if (st != HAL_OK) return st;
     }
     return HAL_OK;
+}
+
+HAL_StatusTypeDef GroveLCD_CreateChar(GroveLCD_t *lcd, uint8_t slot, const uint8_t pattern[8])
+{
+    if (lcd == NULL || pattern == NULL) return HAL_ERROR;
+    if (slot > 7) return HAL_ERROR;
+
+    // 1) Set CGRAM address: 0x40 | (slot * 8)
+    uint8_t cmd = (uint8_t)(LCD_CMD_SET_CGRAM | ((slot & 0x07) << 3));
+    HAL_StatusTypeDef st = lcd_write_cmd(lcd, cmd);
+    if (st != HAL_OK) return st;
+
+    // 2) Write 8 rows (only lower 5 bits are used)
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        uint8_t row = (uint8_t)(pattern[i] & 0x1F);
+        st = lcd_write_data(lcd, row);
+        if (st != HAL_OK) return st;
+    }
+
+    // 3) Return to DDRAM (optional but recommended)
+    st = lcd_write_cmd(lcd, LCD_CMD_SET_DDRAM);
+    HAL_Delay(1);
+    return st;
 }
 
 /* --- Optional helpers (display/cursor/blink) --- */

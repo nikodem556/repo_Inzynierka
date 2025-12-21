@@ -1,26 +1,75 @@
 #include "notes.h"
 #include <string.h>
+#include <stdio.h>
 #include <ctype.h>
 
-/// Static helper: Map an uppercase note root string to a semitone number (0=C, 1=C♯/D♭, ..., 11=B/H).
-static int8_t NoteName_MapRootToSemitone(const char *root) {
-    // Note names mapping (English notation)
-    if (strcmp(root, "C") == 0)   return 0;
-    if (strcmp(root, "CIS") == 0 || strcmp(root, "DES") == 0)  return 1;   // C♯ or D♭
-    if (strcmp(root, "D") == 0)   return 2;
-    if (strcmp(root, "DIS") == 0 || strcmp(root, "ES") == 0)   return 3;   // D♯ or E♭ (Es = E♭)
-    if (strcmp(root, "E") == 0)   return 4;
-    if (strcmp(root, "F") == 0)   return 5;
-    if (strcmp(root, "FIS") == 0 || strcmp(root, "GES") == 0)  return 6;   // F♯ or G♭
-    if (strcmp(root, "G") == 0)   return 7;
-    if (strcmp(root, "GIS") == 0 || strcmp(root, "AS") == 0)   return 8;   // G♯ or A♭ (As = A♭)
-    if (strcmp(root, "A") == 0)   return 9;
-    if (strcmp(root, "AIS") == 0) return 10;  // A♯ (B♭ in English)
-    if (strcmp(root, "B") == 0 || strcmp(root, "BES") == 0 || strcmp(root, "HES") == 0)
-        return 10;  // In Polish notation, "B" or "Bes"/"Hes" = B (semitone 10)
-    if (strcmp(root, "H") == 0)   return 11;  // H = B natural
-    return -1; // not a valid note name
+/// Static helper: Map an uppercase note root string to a semitone number (0=C, 1=C#/Db, ..., 11=B).
+static int8_t NoteName_MapRootToSemitone(const char *root)
+{
+    if (root == NULL || *root == '\0') {
+        return -1;
+    }
+
+    // --- New notation (preferred): English with # and b ---
+    // IMPORTANT:
+    //  - "B" means B natural (semitone 11)
+    //  - Flats are written as "Bb", "Db", etc.
+    //  - Input is already uppercased in NoteName_ToMidi(), so 'b' becomes 'B'
+    if (strcmp(root, "C") == 0) return 0;
+    if (strcmp(root, "D") == 0) return 2;
+    if (strcmp(root, "E") == 0) return 4;
+    if (strcmp(root, "F") == 0) return 5;
+    if (strcmp(root, "G") == 0) return 7;
+    if (strcmp(root, "A") == 0) return 9;
+    if (strcmp(root, "B") == 0) return 11;  // B natural
+
+    // Keep compatibility with older Polish/German notation:
+    if (strcmp(root, "H") == 0) return 11;  // H = B natural
+
+    // Two-character accidentals: "C#", "DB", "BB" (Bb), etc.
+    if (strlen(root) == 2)
+    {
+        char base = root[0];
+        char acc  = root[1];
+
+        int8_t baseSemi = -1;
+        switch (base)
+        {
+            case 'C': baseSemi = 0;  break;
+            case 'D': baseSemi = 2;  break;
+            case 'E': baseSemi = 4;  break;
+            case 'F': baseSemi = 5;  break;
+            case 'G': baseSemi = 7;  break;
+            case 'A': baseSemi = 9;  break;
+            case 'B': baseSemi = 11; break;  // base B
+            case 'H': baseSemi = 11; break;  // base H (compat)
+            default:  baseSemi = -1; break;
+        }
+        if (baseSemi < 0) return -1;
+
+        if (acc == '#') {
+            return (int8_t)((baseSemi + 1) % 12);
+        }
+
+        // Flat: user typed 'b' -> becomes 'B' after toupper()
+        if (acc == 'B') {
+            return (int8_t)((baseSemi + 11) % 12); // -1 mod 12
+        }
+    }
+
+    // --- Legacy compatibility: CIS/DES etc. ---
+    if (strcmp(root, "CIS") == 0 || strcmp(root, "DES") == 0)  return 1;
+    if (strcmp(root, "DIS") == 0 || strcmp(root, "ES")  == 0)  return 3;
+    if (strcmp(root, "FIS") == 0 || strcmp(root, "GES") == 0)  return 6;
+    if (strcmp(root, "GIS") == 0 || strcmp(root, "AS")  == 0)  return 8;
+
+    // Old "AIS" and also "BES/HES" are Bb (semitone 10)
+    if (strcmp(root, "AIS") == 0 || strcmp(root, "BES") == 0 || strcmp(root, "HES") == 0) return 10;
+
+    return -1;
 }
+
+
 
 NoteParseStatus NoteName_ToMidi(const char *name, uint8_t *outNote) {
     if (name == NULL || outNote == NULL) {
@@ -95,9 +144,8 @@ NoteParseStatus Midi_ToNoteName(uint8_t midiNote, char *outName, size_t maxLen) 
     int semitone = midiNote % 12;
     int octave   = midiNote / 12 - 1;
 
-    // Note names for semitones 0–11 (using sharps and H for B natural)
     static const char *semitoneNames[12] = {
-        "C", "CIS", "D", "DIS", "E", "F", "FIS", "G", "GIS", "A", "AIS", "H"
+        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
     };
 
     // Compose the note name string

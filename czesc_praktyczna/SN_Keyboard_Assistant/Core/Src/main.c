@@ -71,6 +71,69 @@ int _write(int file, char *ptr, int len);
 /* USER CODE BEGIN 0 */
 GroveLCD_t lcd;
 
+
+/* Slot 0: Whole note */
+static const uint8_t CH_WHOLE[8] = {
+    0b00000, 0b00110, 0b01001, 0b01001, 0b01001, 0b00110, 0b00000, 0b00000
+};
+
+/* Slot 1: Half note */
+static const uint8_t CH_HALF[8] = {
+    0b00001, 0b00001, 0b00111, 0b01001, 0b01001, 0b00111, 0b00000, 0b00000
+};
+
+/* Slot 2: Quarter note */
+static const uint8_t CH_QUARTER[8] = {
+    0b00001, 0b00001, 0b00111, 0b01111, 0b01111, 0b00111, 0b00000, 0b00000
+};
+
+/* Slot 3: Eighth note */
+static const uint8_t CH_EIGHTH[8] = {
+    0b00011,
+    0b00101,
+    0b00011,
+    0b00001,
+    0b01111,
+    0b01111,
+    0b00110,
+    0b00000
+};
+
+/* Slot 4: Sixteenth note */
+static const uint8_t CH_SIXTEENTH[8] = {
+    0b00011,
+    0b00101,
+    0b00011,
+    0b00101,
+    0b01111,
+    0b01111,
+    0b00110,
+    0b00000
+};
+
+/* Slot 5: Sharp (#) */
+static const uint8_t CH_SHARP[8] = {
+    0b00100,
+    0b01110,
+    0b00100,
+    0b01110,
+    0b00100,
+    0b00000,
+    0b00000,
+    0b00000
+};
+
+/* Slot 6: Flat (b) */
+static const uint8_t CH_FLAT[8] = {
+    0b00100,
+    0b00100,
+    0b00110,
+    0b00101,
+    0b00110,
+    0b00000,
+    0b00000,
+    0b00000
+};
 /* USER CODE END 0 */
 
 /**
@@ -109,12 +172,27 @@ int main(void)
 
   GroveLCD_Init(&lcd, &hi2c1, GROVE_LCD_I2C_ADDR_7BIT_DEFAULT);
 
+  /* Upload custom chars into CGRAM slots 0..4 */
+  GroveLCD_CreateChar(&lcd, 0, CH_WHOLE);
+  GroveLCD_CreateChar(&lcd, 1, CH_HALF);
+  GroveLCD_CreateChar(&lcd, 2, CH_QUARTER);
+  GroveLCD_CreateChar(&lcd, 3, CH_EIGHTH);
+  GroveLCD_CreateChar(&lcd, 4, CH_SIXTEENTH);
+  GroveLCD_CreateChar(&lcd, 5, CH_SHARP);
+  GroveLCD_CreateChar(&lcd, 6, CH_FLAT);
+
   GroveLCD_Clear(&lcd);
   GroveLCD_SetCursor(&lcd, 0, 0);
-  GroveLCD_Print(&lcd, "Hello!");
+  GroveLCD_Print(&lcd, "Notes:");
   GroveLCD_SetCursor(&lcd, 1, 0);
-  GroveLCD_Print(&lcd, "STM32 + I2C");
-
+  GroveLCD_WriteChar(&lcd, (char)0);
+  GroveLCD_WriteChar(&lcd, (char)1);
+  GroveLCD_WriteChar(&lcd, (char)2);
+  GroveLCD_WriteChar(&lcd, (char)3);
+  GroveLCD_WriteChar(&lcd, (char)4);
+  GroveLCD_WriteChar(&lcd, (char)5);
+  GroveLCD_WriteChar(&lcd, (char)6);
+  HAL_Delay(1000);
 
   // Initialize the lesson system (configure LEDs and convert lesson notes)
   Lesson_Init();

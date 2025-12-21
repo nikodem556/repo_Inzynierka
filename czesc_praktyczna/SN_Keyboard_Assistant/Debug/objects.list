@@ -1,6 +1,5 @@
 "./Core/Src/button.o"
 "./Core/Src/grove_lcd16x2_i2c.o"
-"./Core/Src/lcd_hd44780.o"
 "./Core/Src/lesson.o"
 "./Core/Src/main.o"
 "./Core/Src/notes.o"

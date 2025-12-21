@@ -1,4 +1,4 @@
-../Core/Src/notes.c:6:15:NoteName_MapRootToSemitone	16	static
-../Core/Src/notes.c:25:17:NoteName_ToMidi	56	static
-../Core/Src/notes.c:73:17:NoteNameArray_ToMidi	32	static
-../Core/Src/notes.c:86:17:Midi_ToNoteName	56	static
+../Core/Src/notes.c:7:15:NoteName_MapRootToSemitone	24	static
+../Core/Src/notes.c:74:17:NoteName_ToMidi	56	static
+../Core/Src/notes.c:122:17:NoteNameArray_ToMidi	32	static
+../Core/Src/notes.c:135:17:Midi_ToNoteName	56	static

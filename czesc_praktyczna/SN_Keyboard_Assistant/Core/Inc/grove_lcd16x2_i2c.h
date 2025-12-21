@@ -35,6 +35,7 @@ HAL_StatusTypeDef GroveLCD_SetCursor(GroveLCD_t *lcd, uint8_t row, uint8_t col);
 
 HAL_StatusTypeDef GroveLCD_WriteChar(GroveLCD_t *lcd, char c);
 HAL_StatusTypeDef GroveLCD_Print(GroveLCD_t *lcd, const char *s);
+HAL_StatusTypeDef GroveLCD_CreateChar(GroveLCD_t *lcd, uint8_t slot, const uint8_t pattern[8]);
 
 /* Optional helpers */
 HAL_StatusTypeDef GroveLCD_DisplayOn(GroveLCD_t *lcd);
