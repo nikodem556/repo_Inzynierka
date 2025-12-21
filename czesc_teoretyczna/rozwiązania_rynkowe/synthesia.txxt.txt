@@ -1,4 +1,4 @@
-Synthesia to popularna aplikacja edukacyjna do nauki gry na pianinie, która umożliwia użytkownikom granie utworów MIDI poprzez interaktywny interfejs przypominający gry rytmiczne, takie jak Guitar Hero.
+	Synthesia to popularna aplikacja edukacyjna do nauki gry na pianinie, która umożliwia użytkownikom granie utworów MIDI poprzez interaktywny interfejs przypominający gry rytmiczne, takie jak Guitar Hero.
 
 ### 📜 Historia Synthesia
 
