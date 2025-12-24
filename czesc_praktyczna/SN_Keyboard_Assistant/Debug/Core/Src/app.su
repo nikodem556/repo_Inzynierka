@@ -2,8 +2,8 @@
 ../Core/Src/app.c:28:13:LCD_WriteCustom	16	static
 ../Core/Src/app.c:33:6:App_Init	8	static
 ../Core/Src/app.c:43:6:App_Update	8	static
-../Core/Src/app.c:196:13:DisplayWelcomeScreen	8	static
-../Core/Src/app.c:208:13:DisplayMainMenu	8	static
-../Core/Src/app.c:229:13:DisplayNotesLegend	8	static
-../Core/Src/app.c:252:13:DisplaySongsList	8	static
-../Core/Src/app.c:271:13:DisplayChordPacksList	8	static
+../Core/Src/app.c:199:13:DisplayWelcomeScreen	8	static
+../Core/Src/app.c:211:13:DisplayMainMenu	8	static
+../Core/Src/app.c:232:13:DisplayNotesLegend	8	static
+../Core/Src/app.c:255:13:DisplaySongsList	8	static
+../Core/Src/app.c:274:13:DisplayChordPacksList	8	static

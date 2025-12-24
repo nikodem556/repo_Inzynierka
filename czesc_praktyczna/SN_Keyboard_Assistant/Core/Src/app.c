@@ -189,6 +189,9 @@ void App_Update(void)
                 break;
         }
     }
+
+    /* Periodic lesson update (non-blocking LED timing, etc.) */
+    Lesson_Update();
 }
 
 /* --- Screens --- */
@@ -199,10 +202,10 @@ static void DisplayWelcomeScreen(void)
     LCD_ClearRow(0);
     LCD_ClearRow(1);
 
-    GroveLCD_SetCursor(&lcd, 0, 0);
-    GroveLCD_Print(&lcd, "Welcome to KeyGuide");
-    GroveLCD_SetCursor(&lcd, 1, 0);
-    GroveLCD_Print(&lcd, "press OK");
+    GroveLCD_SetCursor(&lcd, 0, 3);
+    GroveLCD_Print(&lcd, "Welcome to");
+    GroveLCD_SetCursor(&lcd, 1, 4);
+    GroveLCD_Print(&lcd, "KeyGuide");
 }
 
 static void DisplayMainMenu(void)

@@ -25,4 +25,8 @@ void Lesson_HandleInput(uint8_t input);
 // Check if a lesson is currently active (in progress)
 bool Lesson_IsActive(void);
 
+// Periodic lesson update (non-blocking LED timing, etc.)
+// Call this regularly from the main loop (e.g., from App_Update()).
+void Lesson_Update(void);
+
 #endif // LESSON_H
