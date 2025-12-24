@@ -1,4 +1,6 @@
-Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
+Core/Src/app.o: ../Core/Src/app.c ../Core/Inc/app.h ../Core/Inc/button.h \
+ ../Core/Inc/lesson.h ../Core/Inc/songs.h ../Core/Inc/chords.h \
+ ../Core/Inc/grove_lcd16x2_i2c.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h \
  ../Core/Inc/stm32l4xx_hal_conf.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_rcc.h \
@@ -27,21 +29,13 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h \
- ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h \
- ../USB_HOST/App/usb_host.h \
- D:/STM32_CubeIDE_workspaces/SN_Keyboard_assistant/Middlewares/ST/STM32_USB_Host_Library/Class/MIDI/Inc/usbh_midi.h \
- ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
- ../USB_HOST/Target/usbh_conf.h \
- ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h \
- ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h \
- ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
- ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h \
- ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h \
- ../Core/Inc/notes.h ../Core/Inc/lesson.h ../Core/Inc/songs.h \
- ../Core/Inc/chords.h ../Core/Inc/grove_lcd16x2_i2c.h \
- ../Core/Inc/button.h ../Core/Inc/app.h ../Core/Inc/button.h \
- ../Core/Inc/lesson.h
-../Core/Inc/main.h:
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h
+../Core/Inc/app.h:
+../Core/Inc/button.h:
+../Core/Inc/lesson.h:
+../Core/Inc/songs.h:
+../Core/Inc/chords.h:
+../Core/Inc/grove_lcd16x2_i2c.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_rcc.h:
@@ -71,21 +65,3 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c_ex.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h:
-../USB_HOST/App/usb_host.h:
-D:/STM32_CubeIDE_workspaces/SN_Keyboard_assistant/Middlewares/ST/STM32_USB_Host_Library/Class/MIDI/Inc/usbh_midi.h:
-../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
-../USB_HOST/Target/usbh_conf.h:
-../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h:
-../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h:
-../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
-../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h:
-../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h:
-../Core/Inc/notes.h:
-../Core/Inc/lesson.h:
-../Core/Inc/songs.h:
-../Core/Inc/chords.h:
-../Core/Inc/grove_lcd16x2_i2c.h:
-../Core/Inc/button.h:
-../Core/Inc/app.h:
-../Core/Inc/button.h:
-../Core/Inc/lesson.h:

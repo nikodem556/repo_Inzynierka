@@ -1,4 +1,5 @@
-Core/Src/lesson.o: ../Core/Src/lesson.c ../Core/Inc/main.h \
+Core/Src/lesson.o: ../Core/Src/lesson.c ../Core/Inc/lesson.h \
+ ../Core/Inc/songs.h ../Core/Inc/chords.h ../Core/Inc/grove_lcd16x2_i2c.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h \
  ../Core/Inc/stm32l4xx_hal_conf.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_rcc.h \
@@ -27,9 +28,11 @@ Core/Src/lesson.o: ../Core/Src/lesson.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h \
- ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h \
- ../Core/Inc/lesson.h ../Core/Inc/grove_lcd16x2_i2c.h ../Core/Inc/notes.h
-../Core/Inc/main.h:
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h
+../Core/Inc/lesson.h:
+../Core/Inc/songs.h:
+../Core/Inc/chords.h:
+../Core/Inc/grove_lcd16x2_i2c.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_rcc.h:
@@ -59,6 +62,3 @@ Core/Src/lesson.o: ../Core/Src/lesson.c ../Core/Inc/main.h \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c_ex.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_pwr_ex.h:
-../Core/Inc/lesson.h:
-../Core/Inc/grove_lcd16x2_i2c.h:
-../Core/Inc/notes.h:

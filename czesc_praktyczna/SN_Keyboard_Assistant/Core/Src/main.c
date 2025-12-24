@@ -26,24 +26,22 @@
 #include "usb_host.h"
 #include "usbh_midi.h"
 #include "notes.h"
-#include "lesson.h"   // Include the Lesson module
+#include "lesson.h"
 #include "grove_lcd16x2_i2c.h"
 #include "button.h"
+#include "app.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -52,9 +50,7 @@ I2C_HandleTypeDef hi2c1;
 /* USER CODE BEGIN PV */
 extern USBH_HandleTypeDef hUsbHostFS;   // declared in usb_host.c
 extern ApplicationTypeDef Appli_state;  // declared in usb_host.c
-ApplicationTypeDef prevState = APPLICATION_IDLE;
-//static uint32_t lastEmptyPrintTick = 0; // for throttled "FIFO empty" messages
-
+static ApplicationTypeDef prevState = APPLICATION_IDLE;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,7 +66,6 @@ int _write(int file, char *ptr, int len);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 GroveLCD_t lcd;
-
 
 /* Slot 0: Whole note */
 static const uint8_t CH_WHOLE[8] = {
@@ -142,9 +137,7 @@ static const uint8_t CH_FLAT[8] = {
   */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -153,26 +146,26 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USB_HOST_Init();
   MX_I2C1_Init();
+
   /* USER CODE BEGIN 2 */
   printf("\r\n==== SN_Keyboard_assistant started (SWV printf active) ====\r\n");
 
+  /* LCD init */
   GroveLCD_Init(&lcd, &hi2c1, GROVE_LCD_I2C_ADDR_7BIT_DEFAULT);
 
-  /* Upload custom chars into CGRAM slots 0..4 */
+  /* Upload custom chars into CGRAM slots 0..6 */
   GroveLCD_CreateChar(&lcd, 0, CH_WHOLE);
   GroveLCD_CreateChar(&lcd, 1, CH_HALF);
   GroveLCD_CreateChar(&lcd, 2, CH_QUARTER);
@@ -181,21 +174,8 @@ int main(void)
   GroveLCD_CreateChar(&lcd, 5, CH_SHARP);
   GroveLCD_CreateChar(&lcd, 6, CH_FLAT);
 
-  GroveLCD_Clear(&lcd);
-  GroveLCD_SetCursor(&lcd, 0, 0);
-  GroveLCD_Print(&lcd, "Notes:");
-  GroveLCD_SetCursor(&lcd, 1, 0);
-  GroveLCD_WriteChar(&lcd, (char)0);
-  GroveLCD_WriteChar(&lcd, (char)1);
-  GroveLCD_WriteChar(&lcd, (char)2);
-  GroveLCD_WriteChar(&lcd, (char)3);
-  GroveLCD_WriteChar(&lcd, (char)4);
-  GroveLCD_WriteChar(&lcd, (char)5);
-  GroveLCD_WriteChar(&lcd, (char)6);
-  HAL_Delay(1000);
-
-  // Initialize the lesson system (configure LEDs and convert lesson notes)
-  Lesson_Init();
+  /* Start UI state machine (shows Welcome screen) */
+  App_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -226,42 +206,37 @@ int main(void)
       prevState = Appli_state;
     }
 
-    /* When device is started or ready -> read MIDI events */
+    /* Read MIDI events and forward NOTE ON to Lesson only when lesson is active */
     if (Appli_state == APPLICATION_READY || Appli_state == APPLICATION_START)
+    {
+      uint8_t midi_event[4];
+      if (USBH_MIDI_GetEvent(&hUsbHostFS, midi_event) == USBH_OK)
       {
-        uint8_t midi_event[4];
-        if (USBH_MIDI_GetEvent(&hUsbHostFS, midi_event) == USBH_OK)
+        uint8_t status  = midi_event[1] & 0xF0;
+        uint8_t note    = midi_event[2];
+        uint8_t vel     = midi_event[3];
+
+        if (status == 0x90 && vel != 0)  /* NOTE ON */
         {
-          uint8_t status  = midi_event[1] & 0xF0;
-          uint8_t note    = midi_event[2];
-          uint8_t vel     = midi_event[3];
-          if (status == 0x90 && vel != 0)  // NOTE ON event with non-zero velocity
+          if (Lesson_IsActive())
           {
-            // Handle Note On: pass note to lesson system (this will also update the LCD)
-            Lesson_OnNoteOn(note);
-          }
-          else if (status == 0x80 || (status == 0x90 && vel == 0))
-          {
-            // NOTE OFF event (can be handled if needed, or ignored for this lesson)
+            /* Lesson_HandleInput treats 0..127 as MIDI notes */
+            Lesson_HandleInput(note);
           }
         }
+        else
+        {
+          /* NOTE OFF ignored */
+        }
       }
-
-    // Update button debounce state
-    Button_Update();
-    // Check if the reset button was pressed
-    if (Button_WasPressedEvent())
-    {
-      Lesson_Reset();  // Reset the lesson (restart song and update LCD)
     }
 
-    // Periodic lesson update (e.g., turn off LEDs after blink duration)
-    Lesson_Tick();
+    /* Update debouncing and run UI/menu logic */
+    Button_Update();
+    App_Update();
 
 
     /* USER CODE END WHILE */
-    MX_USB_HOST_Process();
-
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -276,21 +251,17 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-  */
+  /** Configure the main internal regulator output voltage */
   if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
   {
     Error_Handler();
   }
 
-  /** Configure LSE Drive Capability
-  */
+  /** Configure LSE Drive Capability */
   HAL_PWR_EnableBkUpAccess();
   __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+  /** Initializes the RCC Oscillators according to the specified parameters */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
@@ -308,8 +279,7 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
+  /** Initializes the CPU, AHB and APB buses clocks */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
@@ -322,8 +292,7 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  /** Enable MSI Auto calibration
-  */
+  /** Enable MSI Auto calibration */
   HAL_RCCEx_EnableMSIPLLMode();
 }
 
@@ -334,14 +303,6 @@ void SystemClock_Config(void)
   */
 static void MX_I2C1_Init(void)
 {
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
   hi2c1.Init.Timing = 0x00B07CB4;
   hi2c1.Init.OwnAddress1 = 0;
@@ -356,23 +317,15 @@ static void MX_I2C1_Init(void)
     Error_Handler();
   }
 
-  /** Configure Analogue filter
-  */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
 
-  /** Configure Digital filter
-  */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
-
 }
 
 /**
@@ -383,15 +336,12 @@ static void MX_I2C1_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
-
-  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_RESET);
@@ -403,19 +353,22 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB0 */
+  /*Configure GPIO pins : PA1 PA4 (buttons) */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB0 (button) */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-
-  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
-int __io_putchar(int ch) {
+int __io_putchar(int ch)
+{
     return ITM_SendChar(ch);
 }
 /* USER CODE END 4 */
@@ -426,27 +379,16 @@ int __io_putchar(int ch) {
   */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
   while (1)
   {
   }
-  /* USER CODE END Error_Handler_Debug */
 }
+
 #ifdef USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

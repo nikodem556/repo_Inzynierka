@@ -1,0 +1,9 @@
+../Core/Src/app.c:22:13:LCD_ClearRow	1
+../Core/Src/app.c:28:13:LCD_WriteCustom	1
+../Core/Src/app.c:33:6:App_Init	1
+../Core/Src/app.c:43:6:App_Update	28
+../Core/Src/app.c:196:13:DisplayWelcomeScreen	1
+../Core/Src/app.c:208:13:DisplayMainMenu	3
+../Core/Src/app.c:229:13:DisplayNotesLegend	1
+../Core/Src/app.c:252:13:DisplaySongsList	2
+../Core/Src/app.c:271:13:DisplayChordPacksList	2

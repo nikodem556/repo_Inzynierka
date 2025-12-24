@@ -1,72 +1,21 @@
-#include "main.h"
 #include "lesson.h"
 #include "grove_lcd16x2_i2c.h"
-#include "notes.h"
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
+#include <stdint.h>
+#include <stdbool.h>
 
-/* The Grove LCD instance is created in main.c */
+/* LCD instance lives in main.c */
 extern GroveLCD_t lcd;
 
-#define LED_BLINK_DURATION 100
+/* Internal state variables */
+static Song *currentSong = NULL;
+static ChordPack *currentChordPack = NULL;
+static uint8_t currentStepIndex = 0;
+static uint8_t totalSteps = 0;
+static bool lessonActive = false;
 
-/* Duration type per NOTE (icon slots defined in main.c) */
-typedef enum {
-    DUR_WHOLE,        // slot 0
-    DUR_HALF,         // slot 1
-    DUR_QUARTER,      // slot 2
-    DUR_EIGHTH,       // slot 3
-    DUR_SIXTEENTH     // slot 4
-} NoteDur_t;
-
-static uint8_t Dur_ToIconSlot(NoteDur_t d)
-{
-    switch (d) {
-        case DUR_WHOLE:      return 0;
-        case DUR_HALF:       return 1;
-        case DUR_QUARTER:    return 2;
-        case DUR_EIGHTH:     return 3;
-        case DUR_SIXTEENTH:  return 4;
-        default:             return 2;
-    }
-}
-
-/* Custom symbol slots (as you defined in main.c) */
-#define SLOT_SHARP 5
-#define SLOT_FLAT  6
-
-/* Example scenario using sharps/flats in the NOTE TEXT */
-static const char *SONG_STEPS_NAMES[][MAX_CHORD_NOTES + 1] = {
-    {"C#4", NULL},                 // uses sharp
-    {"Db4", "F4", "Ab4", NULL},     // uses flats
-    {"Bb3", "D4", "F4", NULL},      // Bb major
-    {"G4", "B4", "D5", NULL}        // G major (B natural)
-};
-#define LESSON_STEPS_COUNT  (sizeof(SONG_STEPS_NAMES) / sizeof(SONG_STEPS_NAMES[0]))
-
-/* Duration per NOTE in each step */
-static const NoteDur_t SONG_STEPS_DUR[LESSON_STEPS_COUNT][MAX_CHORD_NOTES] = {
-    /* Step 1 */ { DUR_EIGHTH,     DUR_EIGHTH,     DUR_EIGHTH     }, // only first used
-    /* Step 2 */ { DUR_QUARTER,    DUR_QUARTER,    DUR_QUARTER    },
-    /* Step 3 */ { DUR_HALF,       DUR_HALF,       DUR_HALF       },
-    /* Step 4 */ { DUR_SIXTEENTH,  DUR_SIXTEENTH,  DUR_SIXTEENTH  }
-};
-
-/* MIDI note numbers for each step (to be filled in Lesson_Init) */
-static uint8_t songStepsMidi[LESSON_STEPS_COUNT][MAX_CHORD_NOTES];
-static uint8_t stepNoteCount[LESSON_STEPS_COUNT];
-
-/* Lesson state variables */
-static uint8_t currentStep = 0;
-static uint8_t lessonCompleted = 0;
-static uint32_t totalNoteOnCount = 0;
-static uint32_t correctNoteOnCount = 0;
-static uint8_t stepNotesPlayedFlags[MAX_CHORD_NOTES];
-
-/* LED blink timing control */
-static uint32_t greenLedOffTime = 0;
-static uint32_t redLedOffTime = 0;
+/* Forward declarations */
+static void DisplaySongStep(const SongStep *step);
+static void DisplayChordStep(const Chord *chord);
 
 static void LCD_ClearRow(uint8_t row)
 {
@@ -74,247 +23,203 @@ static void LCD_ClearRow(uint8_t row)
     GroveLCD_Print(&lcd, "                ");
 }
 
-/*
- * Print a note name using custom sharp/flat symbols:
- * Accepts formats like:
- * - "C4"
- * - "C#4"
- * - "Db4"
- * - "Ab3"
- * - "F#5"
- *
- * Output on LCD:
- * - "C" + [sharp-icon] + "4"
- * - "D" + [flat-icon]  + "4"
- */
-static void LCD_PrintNotePretty(const char *name)
+static void LCD_WriteCustom(uint8_t slot)
 {
-    if (name == NULL || name[0] == '\0') return;
+    GroveLCD_WriteChar(&lcd, (char)slot);
+}
 
-    char base = (char)toupper((unsigned char)name[0]);
-    GroveLCD_WriteChar(&lcd, base);
+static char MidiToOctaveChar(int8_t midi)
+{
+    if (midi < 0) return '?';
+    int octave = (midi / 12) - 1; /* MIDI convention: C4=60 */
+    if (octave < 0 || octave > 9) return '?';
+    return (char)('0' + octave);
+}
 
-    if (name[1] == '#') {
-        GroveLCD_WriteChar(&lcd, (char)SLOT_SHARP);
-        if (name[2] != '\0') GroveLCD_WriteChar(&lcd, name[2]); // octave
+/* Start song lesson */
+void Lesson_StartSong(Song *song)
+{
+    currentSong = song;
+    currentChordPack = NULL;
+    currentStepIndex = 0;
+    totalSteps = (song != NULL) ? song->stepCount : 0;
+    lessonActive = (song != NULL && totalSteps > 0);
+
+    if (lessonActive) {
+        DisplaySongStep(&song->steps[0]);
+    }
+}
+
+/* Start chord exercise */
+void Lesson_StartChordExercise(ChordPack *pack)
+{
+    currentChordPack = pack;
+    currentSong = NULL;
+    currentStepIndex = 0;
+    totalSteps = (pack != NULL) ? pack->chordCount : 0;
+    lessonActive = (pack != NULL && totalSteps > 0);
+
+    if (lessonActive) {
+        DisplayChordStep(&pack->chords[0]);
+    }
+}
+
+bool Lesson_IsActive(void)
+{
+    return lessonActive;
+}
+
+void Lesson_HandleInput(uint8_t input)
+{
+    if (!lessonActive) return;
+
+    /* MIDI note input (0..127) */
+    if (input <= 0x7F)
+    {
+        if (currentSong != NULL)
+        {
+            SongStep *step = &currentSong->steps[currentStepIndex];
+
+            /* Auto-advance only for single-note steps */
+            if (step->noteCount == 1)
+            {
+                uint8_t expected = (uint8_t)step->notes[0].midiNote;
+                if (expected == input)
+                {
+                    if (currentStepIndex < (totalSteps - 1)) {
+                        currentStepIndex++;
+                        DisplaySongStep(&currentSong->steps[currentStepIndex]);
+                    } else {
+                        lessonActive = false;
+                    }
+                }
+            }
+        }
+        /* Chord mode: ignore MIDI here (user presses OK to advance) */
         return;
     }
 
-    if (name[1] == 'b' || name[1] == 'B') {
-        GroveLCD_WriteChar(&lcd, (char)SLOT_FLAT);
-        if (name[2] != '\0') GroveLCD_WriteChar(&lcd, name[2]); // octave
-        return;
+    /* Button commands */
+    if (input == LESSON_INPUT_BTN_OK)
+    {
+        if (currentStepIndex < (totalSteps - 1))
+        {
+            currentStepIndex++;
+            if (currentSong) DisplaySongStep(&currentSong->steps[currentStepIndex]);
+            else DisplayChordStep(&currentChordPack->chords[currentStepIndex]);
+        }
+        else {
+            lessonActive = false;
+        }
     }
-
-    // No accidental: octave is name[1]
-    if (name[1] != '\0') GroveLCD_WriteChar(&lcd, name[1]);
+    else if (input == LESSON_INPUT_BTN_NEXT)
+    {
+        if (currentStepIndex > 0)
+        {
+            currentStepIndex--;
+            if (currentSong) DisplaySongStep(&currentSong->steps[currentStepIndex]);
+            else DisplayChordStep(&currentChordPack->chords[currentStepIndex]);
+        }
+        else {
+            /* At step 0 -> exit lesson to list */
+            lessonActive = false;
+        }
+    }
+    else if (input == LESSON_INPUT_BTN_RESET)
+    {
+        if (currentStepIndex != 0)
+        {
+            currentStepIndex = 0;
+            if (currentSong) DisplaySongStep(&currentSong->steps[0]);
+            else DisplayChordStep(&currentChordPack->chords[0]);
+        }
+        else {
+            /* At step 0 -> exit lesson to list */
+            lessonActive = false;
+        }
+    }
 }
 
-/* How many LCD columns a note will occupy when printed with LCD_PrintNotePretty() */
-static uint8_t LCD_NotePrintedWidth(const char *name)
-{
-    if (name == NULL || name[0] == '\0') return 0;
-    if (name[1] == '#' || name[1] == 'b' || name[1] == 'B') return 3; // base + symbol + octave
-    return 2; // base + octave
-}
+/* --- LCD rendering --- */
 
-/**
- * Row 0: notes/chord (pretty printed with custom ♯/♭)
- * Row 1: duration icon under the FIRST character of each note
- */
-static void Lesson_DisplayStep(void)
+static void DisplaySongStep(const SongStep *step)
 {
     GroveLCD_Clear(&lcd);
-
-    uint8_t startCol[MAX_CHORD_NOTES] = {0};
-    uint8_t noteWidth[MAX_CHORD_NOTES] = {0};
-
-    uint8_t col = 0;
-
-    /* Row 0: print notes with spacing */
-    GroveLCD_SetCursor(&lcd, 0, 0);
     LCD_ClearRow(0);
-    GroveLCD_SetCursor(&lcd, 0, 0);
-
-    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i)
-    {
-        const char *name = SONG_STEPS_NAMES[currentStep][i];
-        uint8_t w = LCD_NotePrintedWidth(name);
-        if (w == 0) continue;
-
-        /* +1 for space between notes except first */
-        uint8_t needed = w + ((i > 0) ? 1 : 0);
-        if ((uint8_t)(col + needed) > 16) break;
-
-        if (i > 0) {
-            GroveLCD_WriteChar(&lcd, ' ');
-            col += 1;
-        }
-
-        startCol[i] = col;
-        noteWidth[i] = w;
-
-        LCD_PrintNotePretty(name);
-        col += w;
-    }
-
-    /* Row 1: duration icons aligned under note start */
     LCD_ClearRow(1);
 
-    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i)
+    uint8_t col = 0;
+    uint8_t startCol[3] = {0};
+
+    /* Row 0: print notes as e.g. C#4, Db4, E4 */
+    for (uint8_t i = 0; i < step->noteCount; i++)
     {
-        if (noteWidth[i] == 0) continue;
+        startCol[i] = col;
 
-        uint8_t iconCol = startCol[i];  // under first char
-        if (iconCol > 15) iconCol = 15;
+        /* Letter */
+        GroveLCD_SetCursor(&lcd, 0, col);
+        GroveLCD_WriteChar(&lcd, step->notes[i].letter);
+        col++;
 
-        uint8_t slot = Dur_ToIconSlot(SONG_STEPS_DUR[currentStep][i]);
-        GroveLCD_SetCursor(&lcd, 1, iconCol);
-        GroveLCD_WriteChar(&lcd, (char)slot);
+        /* Accidental */
+        if (step->notes[i].accidental == ACC_SHARP) {
+            LCD_WriteCustom(5);
+            col++;
+        } else if (step->notes[i].accidental == ACC_FLAT) {
+            LCD_WriteCustom(6);
+            col++;
+        }
+
+        /* Octave (from midiNote if present) */
+        char oct = MidiToOctaveChar(step->notes[i].midiNote);
+        GroveLCD_WriteChar(&lcd, oct);
+        col++;
+
+        /* Space between notes */
+        if (i < (step->noteCount - 1) && col < 16) {
+            GroveLCD_WriteChar(&lcd, ' ');
+            col++;
+        }
+
+        if (col >= 16) break;
+    }
+
+    /* Row 1: duration icons under first character of each note */
+    for (uint8_t i = 0; i < step->noteCount; i++)
+    {
+        if (startCol[i] < 16) {
+            GroveLCD_SetCursor(&lcd, 1, startCol[i]);
+            LCD_WriteCustom(step->notes[i].lengthIcon); /* 0..4 */
+        }
     }
 }
 
-static void Lesson_DisplaySummary(void)
+static void DisplayChordStep(const Chord *chord)
 {
     GroveLCD_Clear(&lcd);
+    LCD_ClearRow(0);
+    LCD_ClearRow(1);
 
-    uint32_t accuracyPercent = 0;
-    if (totalNoteOnCount > 0)
-        accuracyPercent = (correctNoteOnCount * 100U) / totalNoteOnCount;
-
-    char line0[17];
-    char line1[17];
-
-    snprintf(line0, sizeof(line0), "Acc %lu/%lu",
-             (unsigned long)correctNoteOnCount,
-             (unsigned long)totalNoteOnCount);
-
-    snprintf(line1, sizeof(line1), "%lu%%  Reset",
-             (unsigned long)accuracyPercent);
-
+    /* Line 0: chord name */
     GroveLCD_SetCursor(&lcd, 0, 0);
-    GroveLCD_Print(&lcd, "                ");
+    GroveLCD_Print(&lcd, "Chord:");
+    GroveLCD_Print(&lcd, chord->name);
+
+    /* Line 1: chord notes (no durations) */
     GroveLCD_SetCursor(&lcd, 1, 0);
-    GroveLCD_Print(&lcd, "                ");
 
-    GroveLCD_SetCursor(&lcd, 0, 0);
-    GroveLCD_Print(&lcd, line0);
-    GroveLCD_SetCursor(&lcd, 1, 0);
-    GroveLCD_Print(&lcd, line1);
-}
-
-void Lesson_Init(void)
-{
-    for (uint8_t step = 0; step < LESSON_STEPS_COUNT; ++step)
+    for (uint8_t i = 0; i < chord->noteCount; i++)
     {
-        uint8_t count = 0;
-        for (uint8_t i = 0; i < MAX_CHORD_NOTES && SONG_STEPS_NAMES[step][i] != NULL; ++i)
-        {
-            uint8_t midiVal;
-            if (NoteName_ToMidi(SONG_STEPS_NAMES[step][i], &midiVal) == NOTE_OK)
-                songStepsMidi[step][count++] = midiVal;
+        GroveLCD_WriteChar(&lcd, chord->notes[i].letter);
+
+        if (chord->notes[i].accidental == ACC_SHARP) {
+            LCD_WriteCustom(5);
+        } else if (chord->notes[i].accidental == ACC_FLAT) {
+            LCD_WriteCustom(6);
         }
-        stepNoteCount[step] = count;
-    }
 
-    HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(RED_LED_GPIO_Port,   RED_LED_Pin,   GPIO_PIN_RESET);
-
-    currentStep = 0;
-    lessonCompleted = 0;
-    totalNoteOnCount = 0;
-    correctNoteOnCount = 0;
-    memset(stepNotesPlayedFlags, 0, sizeof(stepNotesPlayedFlags));
-
-    Lesson_DisplayStep();
-}
-
-void Lesson_Reset(void)
-{
-    currentStep = 0;
-    lessonCompleted = 0;
-    totalNoteOnCount = 0;
-    correctNoteOnCount = 0;
-
-    memset(stepNotesPlayedFlags, 0, sizeof(stepNotesPlayedFlags));
-
-    HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(RED_LED_GPIO_Port,   RED_LED_Pin,   GPIO_PIN_RESET);
-    greenLedOffTime = 0;
-    redLedOffTime = 0;
-
-    Lesson_DisplayStep();
-}
-
-void Lesson_OnNoteOn(uint8_t midiNote)
-{
-    if (lessonCompleted)
-        return;
-
-    totalNoteOnCount++;
-
-    uint8_t correct = 0;
-
-    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i)
-    {
-        if (midiNote == songStepsMidi[currentStep][i] && stepNotesPlayedFlags[i] == 0)
-        {
-            stepNotesPlayedFlags[i] = 1;
-            correctNoteOnCount++;
-            correct = 1;
-
-            HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_SET);
-            greenLedOffTime = HAL_GetTick() + LED_BLINK_DURATION;
-            break;
+        if (i < (chord->noteCount - 1)) {
+            GroveLCD_WriteChar(&lcd, ' ');
         }
-    }
-
-    if (!correct)
-    {
-        HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
-        redLedOffTime = HAL_GetTick() + LED_BLINK_DURATION;
-    }
-
-    uint8_t chordComplete = 1;
-    for (uint8_t i = 0; i < stepNoteCount[currentStep]; ++i)
-    {
-        if (stepNotesPlayedFlags[i] == 0)
-        {
-            chordComplete = 0;
-            break;
-        }
-    }
-
-    if (chordComplete)
-    {
-        currentStep++;
-
-        if (currentStep >= LESSON_STEPS_COUNT)
-        {
-            lessonCompleted = 1;
-            Lesson_DisplaySummary();
-        }
-        else
-        {
-            memset(stepNotesPlayedFlags, 0, sizeof(stepNotesPlayedFlags));
-            Lesson_DisplayStep();
-        }
-    }
-}
-
-void Lesson_Tick(void)
-{
-    uint32_t now = HAL_GetTick();
-
-    if (greenLedOffTime && now >= greenLedOffTime)
-    {
-        HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
-        greenLedOffTime = 0;
-    }
-
-    if (redLedOffTime && now >= redLedOffTime)
-    {
-        HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
-        redLedOffTime = 0;
     }
 }

@@ -3,34 +3,26 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdio.h>
+#include "songs.h"
+#include "chords.h"
 
+// Special codes for non-note inputs to Lesson_HandleInput
+#define LESSON_INPUT_BTN_OK    0xF1  // Forward/OK
+#define LESSON_INPUT_BTN_NEXT  0xF2  // Backward/NEXT (used as "previous step")
+#define LESSON_INPUT_BTN_RESET 0xF3  // Reset
 
-/** Maximum number of notes in a chord (lesson step). */
-#define MAX_CHORD_NOTES 3
+// Initialize and start a song lesson
+void Lesson_StartSong(Song *song);
 
-/**
- * @brief Initialize the lesson system and load the song data.
- *        Should be called once at startup.
- */
-void Lesson_Init(void);
+// Initialize and start a chord exercise
+void Lesson_StartChordExercise(ChordPack *pack);
 
-/**
- * @brief Reset the lesson state to the beginning of the song.
- *        Can be called when the reset button is pressed.
- */
-void Lesson_Reset(void);
+// Handle an input event for the lesson (MIDI note or button code)
+// If input is a MIDI note (0-127), pass the note value directly (uint8_t).
+// If input is a special button code (LESSON_INPUT_BTN_*), pass that constant.
+void Lesson_HandleInput(uint8_t input);
 
-/**
- * @brief Handle a MIDI Note On event in the lesson.
- * @param midiNote  MIDI note number (0-127) of the Note On event.
- */
-void Lesson_OnNoteOn(uint8_t midiNote);
-
-/**
- * @brief Periodic update for the lesson system.
- *        Should be called in the main loop to handle tasks like LED blink timing.
- */
-void Lesson_Tick(void);
+// Check if a lesson is currently active (in progress)
+bool Lesson_IsActive(void);
 
 #endif // LESSON_H

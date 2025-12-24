@@ -1,55 +1,113 @@
-#include "main.h"    // For GPIO definitions and HAL functions
 #include "button.h"
+#include "stm32l4xx_hal.h"
 
-// Debounce configuration
-#define DEBOUNCE_DELAY_MS  20  // minimum stable time in ms to confirm state change
+/* GPIO mapping (your current pins) */
+#define BTN_NEXT_PORT   GPIOA
+#define BTN_NEXT_PIN    GPIO_PIN_1
 
-// Static variables to track button state (debounce logic)
-static uint8_t stableState = 0;       // Last stable (debounced) state: 1 = pressed, 0 = not pressed
-static uint8_t lastReading = 0;       // Last raw reading of the button (before debounce)
-static uint32_t lastChangeTime = 0;   // Timestamp of last state change (for debounce timing)
-static uint8_t pressedEventFlag = 0;  // Flag indicating a press event occurred
+#define BTN_OK_PORT     GPIOA
+#define BTN_OK_PIN      GPIO_PIN_4
 
-void Button_Init(void) {
-    // Read the initial raw state of the button
-    GPIO_PinState initial = HAL_GPIO_ReadPin(RESET_BTN_GPIO_Port, RESET_BTN_Pin);
-    // Determine if initial state is pressed or not pressed based on active level
-    if (initial == (RESET_BTN_ACTIVE_LEVEL ? GPIO_PIN_SET : GPIO_PIN_RESET)) {
-        stableState = 1;  // button is pressed initially
-    } else {
-        stableState = 0;  // button is not pressed initially
+#define BTN_RESET_PORT  GPIOB
+#define BTN_RESET_PIN   GPIO_PIN_0
+
+/* Simple debounce parameters */
+#define DEBOUNCE_MS  30U
+
+typedef struct {
+    uint8_t stable_level;       /* 1=released, 0=pressed (pull-up -> active low) */
+    uint8_t last_raw_level;
+    uint32_t last_change_ms;
+    uint8_t pressed_event;      /* latched: 1 if a new press was detected */
+} BtnState_t;
+
+static BtnState_t g_btn[BUTTON_COUNT];
+
+static uint8_t read_raw(ButtonType b)
+{
+    GPIO_PinState ps = GPIO_PIN_SET;
+
+    switch (b) {
+        case BUTTON_NEXT:  ps = HAL_GPIO_ReadPin(BTN_NEXT_PORT, BTN_NEXT_PIN); break;
+        case BUTTON_OK:    ps = HAL_GPIO_ReadPin(BTN_OK_PORT, BTN_OK_PIN);     break;
+        case BUTTON_RESET: ps = HAL_GPIO_ReadPin(BTN_RESET_PORT, BTN_RESET_PIN); break;
+        default:           ps = GPIO_PIN_SET; break;
     }
-    lastReading = stableState;
-    lastChangeTime = HAL_GetTick();
-    pressedEventFlag = 0;
+
+    /* pull-up: released=1, pressed=0 */
+    return (ps == GPIO_PIN_RESET) ? 0U : 1U;
 }
 
-void Button_Update(void) {
-    // Read current raw state of the button pin
-    GPIO_PinState rawState = HAL_GPIO_ReadPin(RESET_BTN_GPIO_Port, RESET_BTN_Pin);
-    uint8_t rawPressed = (rawState == (RESET_BTN_ACTIVE_LEVEL ? GPIO_PIN_SET : GPIO_PIN_RESET)) ? 1 : 0;
+void Button_Init(void)
+{
+    /* If you already configure pins in CubeMX, this is optional.
+       Keeping it here is fine as a safety net. */
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
 
-    if (rawPressed != lastReading) {
-        // Button state has changed (could be bounce), reset the debounce timer
-        lastChangeTime = HAL_GetTick();
-        lastReading = rawPressed;
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull  = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+    GPIO_InitStruct.Pin = BTN_NEXT_PIN;
+    HAL_GPIO_Init(BTN_NEXT_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = BTN_OK_PIN;
+    HAL_GPIO_Init(BTN_OK_PORT, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = BTN_RESET_PIN;
+    HAL_GPIO_Init(BTN_RESET_PORT, &GPIO_InitStruct);
+
+    uint32_t now = HAL_GetTick();
+    for (uint8_t i = 0; i < BUTTON_COUNT; i++) {
+        uint8_t raw = read_raw((ButtonType)i);
+        g_btn[i].stable_level   = raw;
+        g_btn[i].last_raw_level = raw;
+        g_btn[i].last_change_ms = now;
+        g_btn[i].pressed_event  = 0;
     }
-    // If the state remains changed for longer than the debounce delay, accept the new state
-    if (rawPressed != stableState && (HAL_GetTick() - lastChangeTime) >= DEBOUNCE_DELAY_MS) {
-        // Update the debounced stable state
-        stableState = rawPressed;
-        if (stableState == 1) {
-            // Button has transitioned from released to pressed
-            pressedEventFlag = 1;
+}
+
+void Button_Update(void)
+{
+    uint32_t now = HAL_GetTick();
+
+    for (uint8_t i = 0; i < BUTTON_COUNT; i++)
+    {
+        ButtonType b = (ButtonType)i;
+        uint8_t raw = read_raw(b);
+
+        if (raw != g_btn[i].last_raw_level) {
+            g_btn[i].last_raw_level = raw;
+            g_btn[i].last_change_ms = now;
+        }
+
+        /* If raw has been stable long enough -> accept as stable */
+        if ((now - g_btn[i].last_change_ms) >= DEBOUNCE_MS)
+        {
+            if (raw != g_btn[i].stable_level)
+            {
+                /* Edge detected on stable signal */
+                uint8_t prev = g_btn[i].stable_level;
+                g_btn[i].stable_level = raw;
+
+                /* Released->Pressed = 1->0 */
+                if (prev == 1U && raw == 0U) {
+                    g_btn[i].pressed_event = 1U;
+                }
+            }
         }
     }
 }
 
-uint8_t Button_WasPressedEvent(void) {
-    if (pressedEventFlag) {
-        // A press event was detected since last check
-        pressedEventFlag = 0;
-        return 1;
+bool Button_WasPressed(ButtonType button)
+{
+    if (button >= BUTTON_COUNT) return false;
+
+    if (g_btn[button].pressed_event) {
+        g_btn[button].pressed_event = 0;
+        return true;
     }
-    return 0;
+    return false;
 }

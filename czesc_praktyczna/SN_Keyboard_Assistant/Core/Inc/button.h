@@ -2,23 +2,29 @@
 #define BUTTON_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
-/**
- * @brief Initialize the button debounce module (capture initial state).
- */
+/* Button identifiers */
+typedef enum {
+    BUTTON_RESET = 0,
+    BUTTON_NEXT,
+    BUTTON_OK,
+    BUTTON_COUNT
+} ButtonType;
+
+/* Initialize button module (GPIO assumed configured in CubeMX, but safe to call). */
 void Button_Init(void);
 
-/**
- * @brief Poll the button input and update its debounced state.
- *        Call this function frequently (e.g., on every main loop iteration).
+/*
+ * Must be called periodically (e.g. every main loop iteration).
+ * Updates debouncing and edge detection.
  */
 void Button_Update(void);
 
-/**
- * @brief Check if a debounced button press event has occurred since the last check.
- * @return 1 if the button was pressed (released-to-pressed transition) since last call, 0 otherwise.
- * @note  When this returns 1, the internal flag is reset until the next press event.
+/*
+ * Returns true once per physical press (edge-triggered).
+ * Button_Update() must be called regularly for correct behavior.
  */
-uint8_t Button_WasPressedEvent(void);
+bool Button_WasPressed(ButtonType button);
 
-#endif /* BUTTON_H */
+#endif // BUTTON_H
