@@ -1,10 +1,3 @@
-/*
- * notes.h
- *
- *  Created on: 5 gru 2025
- *      Author: nikod
- */
-
 #ifndef NOTES_H
 #define NOTES_H
 
@@ -32,6 +25,7 @@ typedef enum
  *   - Supported roots include:
  *       C, CIS, DES, D, DIS, ES, E, F, FIS, GES, G, GIS, AS,
  *       A, AIS, B, BES, H, HES
+ *	 - Naming convention used in this project: "B" means B natural; Bb can be written as "Bb" or "BES"/"HES".
  *   - Last character is the octave digit (0..9), e.g. "C4".
  *
  * MIDI convention used:

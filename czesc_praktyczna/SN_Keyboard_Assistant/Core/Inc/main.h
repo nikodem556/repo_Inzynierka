@@ -31,29 +31,24 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -66,32 +61,18 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN Private defines */
 
-// LED pins (green and red LEDs)
-#define GREEN_LED_GPIO_Port 	GPIOC
-#define GREEN_LED_Pin        	GPIO_PIN_0	// e.g PC0
-#define RED_LED_GPIO_Port    	GPIOC
-#define RED_LED_Pin          	GPIO_PIN_1	// e.g PC1
+/* LED pins (used for visual feedback in the application). */
+#define GREEN_LED_GPIO_Port     GPIOC
+#define GREEN_LED_Pin           GPIO_PIN_0   /* e.g. PC0 */
+#define RED_LED_GPIO_Port       GPIOC
+#define RED_LED_Pin             GPIO_PIN_1   /* e.g. PC1 */
 
-// Reset button pin (active-low by default)
+/* Reset button pin (default active-low with pull-up). */
 #define RESET_BTN_GPIO_Port     GPIOB
-#define RESET_BTN_Pin           GPIO_PIN_0	// e.g PB0
-#define RESET_BTN_ACTIVE_LEVEL  0   // 0 for active-low, 1 for active-high
+#define RESET_BTN_Pin           GPIO_PIN_0   /* e.g. PB0 */
+#define RESET_BTN_ACTIVE_LEVEL  0            /* 0 = active-low, 1 = active-high */
 
-// LCD pins (HD44780 16x2 in 4-bit mode)
-#define LCD_RS_GPIO_Port 		GPIOA
-#define LCD_RS_Pin       		GPIO_PIN_3	// e.g PA3
-#define LCD_E_GPIO_Port  		GPIOA
-#define LCD_E_Pin        		GPIO_PIN_10	// e.g PA10
-#define LCD_D4_GPIO_Port 		GPIOB
-#define LCD_D4_Pin       		GPIO_PIN_5	// e.g PB5
-#define LCD_D5_GPIO_Port 		GPIOB
-#define LCD_D5_Pin       		GPIO_PIN_4	// e.g PB4
-#define LCD_D6_GPIO_Port 		GPIOB
-#define LCD_D6_Pin       		GPIO_PIN_10	// e.g PB10
-#define LCD_D7_GPIO_Port 		GPIOA
-#define LCD_D7_Pin       		GPIO_PIN_8	// e.g PA8
-
-
+/* Compile-time guards: fail early if any required mapping is missing. */
 #ifndef GREEN_LED_GPIO_Port
 #error "LED, Button, or LCD pin macros not defined in main.h (check GREEN_LED/RED_LED, RESET_BTN, LCD pins)."
 #endif
@@ -113,42 +94,7 @@ void Error_Handler(void);
 #ifndef RESET_BTN_ACTIVE_LEVEL
 #error "RESET_BTN_ACTIVE_LEVEL not defined"
 #endif
-#ifndef LCD_RS_GPIO_Port
-#error "LCD_RS_GPIO_Port not defined"
-#endif
-#ifndef LCD_RS_Pin
-#error "LCD_RS_Pin not defined"
-#endif
-#ifndef LCD_E_GPIO_Port
-#error "LCD_E_GPIO_Port not defined"
-#endif
-#ifndef LCD_E_Pin
-#error "LCD_E_Pin not defined"
-#endif
-#ifndef LCD_D4_GPIO_Port
-#error "LCD_D4_GPIO_Port not defined"
-#endif
-#ifndef LCD_D4_Pin
-#error "LCD_D4_Pin not defined"
-#endif
-#ifndef LCD_D5_GPIO_Port
-#error "LCD_D5_GPIO_Port not defined"
-#endif
-#ifndef LCD_D5_Pin
-#error "LCD_D5_Pin not defined"
-#endif
-#ifndef LCD_D6_GPIO_Port
-#error "LCD_D6_GPIO_Port not defined"
-#endif
-#ifndef LCD_D6_Pin
-#error "LCD_D6_Pin not defined"
-#endif
-#ifndef LCD_D7_GPIO_Port
-#error "LCD_D7_GPIO_Port not defined"
-#endif
-#ifndef LCD_D7_Pin
-#error "LCD_D7_Pin not defined"
-#endif
+
 
 /* USER CODE END Private defines */
 

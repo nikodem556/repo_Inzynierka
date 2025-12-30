@@ -3,7 +3,27 @@
 #include <stdio.h>
 #include <ctype.h>
 
-/// Static helper: Map an uppercase note root string to a semitone number (0=C, 1=C#/Db, ..., 11=B).
+/**
+ * @file notes.c
+ * @brief Implementation of note name parsing and MIDI note formatting.
+ *
+ * Supported input conventions (case-insensitive):
+ * - Single-letter roots: C, D, E, F, G, A, B (in this project: B = B natural)
+ * - 'H' is also accepted as an alternative name for B natural (common in Polish/German sources);
+ * - note that this project still treats "B" as B natural.
+ * - Accidentals: '#' for sharp, 'b' for flat (e.g. C#4, Bb3)
+ * - Legacy names: CIS/DES, DIS/ES, FIS/GES, GIS/AS, AIS/BES/HES
+ *
+ * Octave is given as the last character (0..9). MIDI convention: C4 = 60.
+ */
+
+
+/**
+ * @brief Map an uppercase note root string to a semitone number.
+ *
+ * @param root Uppercase note root without octave (e.g. "C", "CIS", "DB", "F#").
+ * @return Semitone number in range 0..11 on success, or -1 on failure.
+ */
 static int8_t NoteName_MapRootToSemitone(const char *root)
 {
     if (root == NULL || *root == '\0') {
@@ -69,8 +89,12 @@ static int8_t NoteName_MapRootToSemitone(const char *root)
     return -1;
 }
 
-
-
+/**
+ * @brief Parse a note name string and convert it to a MIDI note number.
+ *
+ * The input is case-insensitive. The last character must be an octave digit (0..9).
+ * Returns a status code describing the first error encountered.
+ */
 NoteParseStatus NoteName_ToMidi(const char *name, uint8_t *outNote) {
     if (name == NULL || outNote == NULL) {
         return NOTE_ERR_INVALID_FORMAT;
@@ -95,30 +119,33 @@ NoteParseStatus NoteName_ToMidi(const char *name, uint8_t *outNote) {
     }
     int octave = octaveChar - '0';
 
-    // Everything before the last char is the note root (e.g. "C", "CIS", "DES", "HES", etc.)
+    // Everything before the last char is the note root
     temp[len - 1] = '\0';  // isolate the root part
     const char *root = temp;
     if (*root == '\0') {
-        // No note root present (string was just a digit or empty)
         return NOTE_ERR_INVALID_FORMAT;
     }
 
     int8_t semitone = NoteName_MapRootToSemitone(root);
     if (semitone < 0) {
-        return NOTE_ERR_INVALID_NOTE;  // root not recognized
+        return NOTE_ERR_INVALID_NOTE;
     }
 
     // Compute MIDI note number: MIDI = 12 * (octave + 1) + semitone
-    // (C4 => octave=4, semitone=0, yields 12*(4+1)+0 = 60)
     int midi = 12 * (octave + 1) + semitone;
     if (midi < 0 || midi > 127) {
-        return NOTE_ERR_INVALID_OCTAVE;  // out of MIDI range (e.g., "A9" would be >127)
+        return NOTE_ERR_INVALID_OCTAVE;
     }
 
     *outNote = (uint8_t)midi;
     return NOTE_OK;
 }
 
+/**
+ * @brief Convert an array of note name strings into MIDI note numbers.
+ *
+ * Stops and returns immediately on the first parsing error.
+ */
 NoteParseStatus NoteNameArray_ToMidi(const char *names[], size_t count, uint8_t outNotes[]) {
     if (names == NULL || outNotes == NULL) {
         return NOTE_ERR_INVALID_FORMAT;
@@ -132,12 +159,17 @@ NoteParseStatus NoteNameArray_ToMidi(const char *names[], size_t count, uint8_t 
     return NOTE_OK;
 }
 
+/**
+ * @brief Convert a MIDI note number (0..127) into a textual note name (e.g. 60 -> "C4").
+ *
+ * Output uses English names with sharps: C, C#, D, ... , B.
+ */
 NoteParseStatus Midi_ToNoteName(uint8_t midiNote, char *outName, size_t maxLen) {
     if (outName == NULL || maxLen == 0) {
         return NOTE_ERR_INVALID_FORMAT;
     }
     if (midiNote > 127) {
-        return NOTE_ERR_INVALID_NOTE;  // MIDI note out of range
+        return NOTE_ERR_INVALID_NOTE;
     }
 
     // Determine octave and semitone from MIDI number
@@ -149,20 +181,14 @@ NoteParseStatus Midi_ToNoteName(uint8_t midiNote, char *outName, size_t maxLen) 
     };
 
     // Compose the note name string
-    // (Ensure the buffer is large enough for up to 3 chars of name + possible '-' + octave digit + null)
     char buf[8];
     const char *noteName = semitoneNames[semitone];
-    if (octave >= 0) {
-        // Format like "C4"
-        snprintf(buf, sizeof(buf), "%s%d", noteName, octave);
-    } else {
-        // Negative octave (e.g., MIDI 0 = C-1)
-        snprintf(buf, sizeof(buf), "%s%d", noteName, octave);
-    }
+    snprintf(buf, sizeof(buf), "%s%d", noteName, octave);
+
     // Check length against maxLen (including null terminator)
     size_t outLen = strlen(buf) + 1;
     if (outLen > maxLen) {
-        return NOTE_ERR_INVALID_FORMAT;  // buffer too small to hold the output
+        return NOTE_ERR_INVALID_FORMAT;
     }
     strcpy(outName, buf);
     return NOTE_OK;

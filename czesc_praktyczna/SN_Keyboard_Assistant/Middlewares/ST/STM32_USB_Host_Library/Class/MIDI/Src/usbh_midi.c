@@ -7,7 +7,21 @@
 #include <string.h>
 #include <stdio.h>
 
-/* Internal function prototypes */
+/*
+ * This file implements a minimal USB Host class for MIDI Streaming.
+ *
+ * Key points:
+ * - Interface selection: Audio class (0x01) + MIDI Streaming subclass (0x03)
+ * - Endpoint selection: Bulk IN endpoint is required to receive MIDI data
+ * - Data format: received packets are interpreted as a sequence of 4-byte
+ *   USB-MIDI event packets and stored in a circular FIFO.
+ *
+ * NOTE (implementation detail):
+ * - The FIFO stores raw bytes; head/tail move in steps of 4 bytes.
+ * - When FIFO is full, remaining incoming events are dropped.
+ */
+
+/* Internal function prototypes (USBH class callbacks) */
 static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost);
 static USBH_StatusTypeDef USBH_MIDI_ClassRequest(USBH_HandleTypeDef *phost);
 static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost);
@@ -25,7 +39,19 @@ USBH_ClassTypeDef MIDI_Class = {
     USBH_MIDI_SOFProcess
 };
 
-/* USBH_MIDI_Init: called upon device connection for MIDI class */
+/**
+ * @brief USBH MIDI Init callback (called when a matching device is connected).
+ *
+ * Responsibilities:
+ * - Allocate and attach MIDI_HandleTypeDef to phost->pActiveClass->pData
+ * - Find MIDI Streaming interface (Audio class + MIDI Streaming subclass)
+ * - Open Bulk IN pipe (and optionally Bulk OUT pipe if present)
+ * - Initialize FIFO indices and state machine
+ *
+ * NOTE:
+ * - If no MIDI Streaming interface is found, the function returns FAIL.
+ *   (In the current implementation the allocated handle is not freed in that path.)
+ */
 static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
 {
   USBH_StatusTypeDef status = USBH_FAIL;
@@ -65,20 +91,37 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
   {
     USBH_EpDescTypeDef *ep_desc = &itf_desc->Ep_Desc[ep_idx];
     uint8_t ep_addr = ep_desc->bEndpointAddress;
-    uint8_t ep_type = ep_desc->bmAttributes & 0x03U;  // lower 2 bits indicate type
+    uint8_t ep_type = ep_desc->bmAttributes & 0x03U;  /* lower 2 bits indicate transfer type */
+
+    /*
+     * Bulk IN endpoint:
+     * - direction bit set (0x80)
+     * - transfer type bulk (0x02)
+     */
     if ((ep_addr & 0x80U) && (ep_type == 0x02U))
     {
       /* MIDI IN endpoint (Bulk IN) */
       MIDI_Handle->InEp = ep_addr;
       MIDI_Handle->InEpSize = ep_desc->wMaxPacketSize;
+
+      /*
+       * IMPORTANT:
+       * RxBuffer is sized to USBH_MIDI_MAX_PACKET_SIZE (64).
+       * The code passes InEpSize to USBH_BulkReceiveData() later.
+       * This assumes InEpSize <= USBH_MIDI_MAX_PACKET_SIZE (typical for FS bulk).
+       */
       MIDI_Handle->InPipe = USBH_AllocPipe(phost, MIDI_Handle->InEp);
       USBH_OpenPipe(phost, MIDI_Handle->InPipe, MIDI_Handle->InEp,
                     phost->device.address, phost->device.speed,
                     USBH_EP_BULK, MIDI_Handle->InEpSize);
       USBH_LL_SetToggle(phost, MIDI_Handle->InPipe, 0);
+
       printf("USBH_MIDI_Init: Bulk IN endpoint 0x%02X (pipe %d) opened, max packet %d bytes\r\n",
              MIDI_Handle->InEp, MIDI_Handle->InPipe, MIDI_Handle->InEpSize);
     }
+    /*
+     * Bulk OUT endpoint (optional, not used by this IN-only API).
+     */
     else if (!(ep_addr & 0x80U) && (ep_type == 0x02U))
     {
       /* MIDI OUT endpoint (Bulk OUT) */
@@ -89,6 +132,7 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
                     phost->device.address, phost->device.speed,
                     USBH_EP_BULK, MIDI_Handle->OutEpSize);
       USBH_LL_SetToggle(phost, MIDI_Handle->OutPipe, 0);
+
       printf("USBH_MIDI_Init: Bulk OUT endpoint 0x%02X (pipe %d) opened, max packet %d bytes\r\n",
              MIDI_Handle->OutEp, MIDI_Handle->OutPipe, MIDI_Handle->OutEpSize);
     }
@@ -107,7 +151,11 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
   return status;
 }
 
-/* USBH_MIDI_DeInit: called on device disconnection for cleanup */
+/**
+ * @brief USBH MIDI DeInit callback (called on device disconnection).
+ *
+ * Closes allocated pipes and frees the class handle memory.
+ */
 static USBH_StatusTypeDef USBH_MIDI_DeInit(USBH_HandleTypeDef *phost)
 {
   MIDI_HandleTypeDef *MIDI_Handle = (MIDI_HandleTypeDef *)phost->pActiveClass->pData;
@@ -122,7 +170,8 @@ static USBH_StatusTypeDef USBH_MIDI_DeInit(USBH_HandleTypeDef *phost)
       USBH_FreePipe(phost, MIDI_Handle->InPipe);
       MIDI_Handle->InPipe = 0;
     }
-    /* Close and free OUT pipe */
+
+    /* Close and free OUT pipe (if allocated) */
     if (MIDI_Handle->OutPipe)
     {
       printf("USBH_MIDI_DeInit: Closing OutPipe %d (EP 0x%02X)\r\n",
@@ -131,23 +180,42 @@ static USBH_StatusTypeDef USBH_MIDI_DeInit(USBH_HandleTypeDef *phost)
       USBH_FreePipe(phost, MIDI_Handle->OutPipe);
       MIDI_Handle->OutPipe = 0;
     }
+
     /* Free MIDI class handle */
     USBH_free(MIDI_Handle);
     phost->pActiveClass->pData = NULL;
+
     printf("USBH_MIDI_DeInit: Freed MIDI class handle memory\r\n");
     printf("USBH_MIDI_DeInit: De-initialization complete\r\n");
   }
   return USBH_OK;
 }
 
-/* USBH_MIDI_ClassRequest: no class-specific requests needed for basic MIDI */
+/**
+ * @brief Class-specific request stage.
+ *
+ * This minimal MIDI driver does not require additional control requests,
+ * so it always returns USBH_OK.
+ */
 static USBH_StatusTypeDef USBH_MIDI_ClassRequest(USBH_HandleTypeDef *phost)
 {
-  /* No special control requests; simply return OK */
+  (void)phost;
   return USBH_OK;
 }
 
-/* USBH_MIDI_Process: polling handler for incoming MIDI data */
+/**
+ * @brief Main class process callback (polled by USBH core).
+ *
+ * State machine:
+ * - MIDI_IDLE: submit a new Bulk IN transfer (USBH_BulkReceiveData) -> MIDI_TRANSFER
+ * - MIDI_TRANSFER:
+ *     - if URB_DONE: read received length, split into 4-byte events, push to FIFO,
+ *       then immediately submit next Bulk IN transfer (stay in MIDI_TRANSFER)
+ *     - if URB_STALL: clear stall feature and retry
+ *     - if URB_ERROR: go to MIDI_ERROR
+ *     - else (BUSY/NOTREADY): keep waiting
+ * - MIDI_ERROR: unrecoverable (no recovery in current code)
+ */
 static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
 {
   MIDI_HandleTypeDef *MIDI_Handle = (MIDI_HandleTypeDef *)phost->pActiveClass->pData;
@@ -157,13 +225,13 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
 
   if (MIDI_Handle == NULL)
   {
-    return USBH_FAIL;  // Should not happen if class is active
+    return USBH_FAIL;  /* Should not happen if class is active */
   }
 
   switch (MIDI_Handle->state)
   {
     case MIDI_IDLE:
-      /* Idle: start a new IN transfer */
+      /* Start a new IN transfer */
       printf("USBH_MIDI_Process: State=MIDI_IDLE, initiating IN transfer\r\n");
       USBH_BulkReceiveData(phost, MIDI_Handle->RxBuffer,
                            MIDI_Handle->InEpSize, MIDI_Handle->InPipe);
@@ -177,26 +245,29 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
       urb_state = USBH_LL_GetURBState(phost, MIDI_Handle->InPipe);
       if (urb_state == USBH_URB_DONE)
       {
-        /* Data packet received */
+        /* One USB packet received */
         length = USBH_LL_GetLastXferSize(phost, MIDI_Handle->InPipe);
         printf("USBH_MIDI_Process: URB done, received %lu bytes\r\n", (unsigned long)length);
+
         if (length > 0 && length <= USBH_MIDI_MAX_PACKET_SIZE)
         {
+          /* Split data into 4-byte USB-MIDI event packets and push to FIFO */
           uint32_t i = 0;
           while (i < length && (length - i) >= 4)
           {
             uint16_t nextHead = (MIDI_Handle->EventFIFOHead + 4) % USBH_MIDI_EVENT_FIFO_SIZE;
             if (nextHead == MIDI_Handle->EventFIFOTail)
             {
-              /* FIFO full – cannot add more events */
-              break;  // drop remaining events
+              /* FIFO full: drop remaining events in this packet */
+              break;
             }
-            /* Copy one 4-byte MIDI event into FIFO */
+
             memcpy(&MIDI_Handle->EventFIFO[MIDI_Handle->EventFIFOHead],
                    &MIDI_Handle->RxBuffer[i], 4);
             MIDI_Handle->EventFIFOHead = nextHead;
             i += 4;
           }
+
           uint32_t eventsAdded = i / 4;
           if (eventsAdded > 0)
           {
@@ -210,14 +281,16 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
         }
         else if (length > USBH_MIDI_MAX_PACKET_SIZE)
         {
-          /* Received packet larger than our buffer (should not happen in FS) */
+          /* Safety log: should not happen for FS bulk with 64-byte packets */
           printf("USBH_MIDI_Process: Packet size %lu exceeds max %d, ignoring\r\n",
                  (unsigned long)length, USBH_MIDI_MAX_PACKET_SIZE);
         }
-        /* Submit a new read transfer immediately to continue polling */
+
+        /* Immediately submit the next read transfer to keep continuous polling */
         USBH_BulkReceiveData(phost, MIDI_Handle->RxBuffer,
                              MIDI_Handle->InEpSize, MIDI_Handle->InPipe);
-        /* Stay in MIDI_TRANSFER state */
+
+        /* Stay in MIDI_TRANSFER */
         status = USBH_OK;
       }
       else if (urb_state == USBH_URB_STALL)
@@ -225,28 +298,27 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
         /* IN endpoint stalled – clear the stall and retry */
         printf("USBH_MIDI_Process: IN endpoint 0x%02X stalled, clearing halt condition\r\n",
                MIDI_Handle->InEp);
-        USBH_ClrFeature(phost, MIDI_Handle->InEp);  // clear stall on the IN endpoint
+        USBH_ClrFeature(phost, MIDI_Handle->InEp);
         USBH_BulkReceiveData(phost, MIDI_Handle->RxBuffer,
                              MIDI_Handle->InEpSize, MIDI_Handle->InPipe);
         status = USBH_OK;
       }
       else if (urb_state == USBH_URB_ERROR)
       {
-        /* USB transfer error */
+        /* USB transfer error -> enter error state */
         MIDI_Handle->state = MIDI_ERROR;
         printf("USBH_MIDI_Process: USB transfer error, state -> MIDI_ERROR\r\n");
         status = USBH_FAIL;
       }
       else
       {
-        /* URB_BUSY or NOTREADY: no new data yet, keep waiting */
+        /* URB_BUSY / NOTREADY: keep waiting */
         status = USBH_BUSY;
-        // (No log here to avoid excessive output on each poll cycle)
       }
       break;
 
     case MIDI_ERROR:
-      /* Error state - no recovery implemented */
+      /* No recovery is implemented in this minimal driver */
       printf("USBH_MIDI_Process: State=MIDI_ERROR, unrecoverable error\r\n");
       status = USBH_FAIL;
       break;
@@ -259,33 +331,43 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
   return status;
 }
 
-/* USBH_MIDI_SOFProcess: not used (included for completeness) */
+/**
+ * @brief SOF callback (not used in this driver).
+ *
+ * Included for completeness because USBH_ClassTypeDef includes this hook.
+ */
 static USBH_StatusTypeDef USBH_MIDI_SOFProcess(USBH_HandleTypeDef *phost)
 {
-  /* No periodic SOF handling needed for this class */
+  (void)phost;
   return USBH_OK;
 }
 
-/* Public API function to get a MIDI event from the FIFO */
+/**
+ * @brief Public API: pop one 4-byte event from the FIFO.
+ *
+ * Returns USBH_FAIL if FIFO is empty or class data is not initialized.
+ */
 USBH_StatusTypeDef USBH_MIDI_GetEvent(USBH_HandleTypeDef *phost, uint8_t *event_buf)
 {
   MIDI_HandleTypeDef *MIDI_Handle = (MIDI_HandleTypeDef *)phost->pActiveClass->pData;
   if (MIDI_Handle == NULL)
   {
-    return USBH_FAIL;  // Class not initialized or device not connected
+    return USBH_FAIL;  /* Class not initialized / device not ready */
   }
-  /* Check FIFO */
+
+  /* FIFO empty */
   if (MIDI_Handle->EventFIFOHead == MIDI_Handle->EventFIFOTail)
   {
-    // FIFO empty
     return USBH_FAIL;
   }
+
   /* Copy one 4-byte event from FIFO to user buffer */
   for (uint8_t j = 0; j < 4; j++)
   {
     event_buf[j] = MIDI_Handle->EventFIFO[MIDI_Handle->EventFIFOTail + j];
   }
-  /* Advance tail index by 4 (one event) */
+
+  /* Advance tail by 4 (one event) */
   MIDI_Handle->EventFIFOTail = (MIDI_Handle->EventFIFOTail + 4) % USBH_MIDI_EVENT_FIFO_SIZE;
   return USBH_OK;
 }

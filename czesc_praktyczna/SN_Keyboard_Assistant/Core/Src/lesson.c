@@ -1,10 +1,32 @@
 #include "lesson.h"
 #include "grove_lcd16x2_i2c.h"
-#include "main.h"   // GPIO + HAL_GetTick()
+#include "main.h"   /* GPIO macros and HAL_GetTick() */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
+#include <stdio.h>  /* snprintf() */
+
+/*
+ * lesson.c
+ *
+ * Lesson engine responsible for verifying played notes and providing feedback.
+ *
+ * Two modes are supported:
+ * 1) Song mode:
+ *    - Each step defines one to three exact MIDI notes to be played (match by MIDI number).
+ *    - The display shows note names with accidentals and octave, plus duration icons.
+ *
+ * 2) Chord mode:
+ *    - Each step defines one chord (up to three notes).
+ *    - Matching is done by pitch class (note % 12), allowing any octave.
+ *
+ * Feedback:
+ * - Green LED blinks on correct input, red LED blinks on wrong input.
+ * - After finishing all steps, a summary screen is shown (OK/Total and percentage).
+ *
+ * Notes:
+ * - This file does not read USB/MIDI directly; it only processes inputs passed in
+ *   via Lesson_HandleInput().
+ * - LCD instance is created and initialized in main.c (exported as extern).
+ */
 
 /* LCD instance lives in main.c */
 extern GroveLCD_t lcd;
@@ -55,26 +77,35 @@ static bool IsStepComplete(void);
 static void AdvanceOrSummary(void);
 
 /* --- Local LCD helpers --- */
+
+/* Clears one LCD row by overwriting it with spaces. */
 static void LCD_ClearRow(uint8_t row)
 {
     GroveLCD_SetCursor(&lcd, row, 0);
     GroveLCD_Print(&lcd, "                ");
 }
 
+/* Writes one custom character (CGRAM slot 0..7) to the LCD. */
 static void LCD_WriteCustom(uint8_t slot)
 {
     GroveLCD_WriteChar(&lcd, (char)slot);
 }
 
+/*
+ * Convert MIDI note number to octave character.
+ * MIDI convention: C4=60 -> octave 4. Formula: octave = (midi/12) - 1.
+ */
 static char MidiToOctaveChar(int8_t midi)
 {
     if (midi < 0) return '?';
-    int octave = (midi / 12) - 1; /* MIDI convention: C4=60 */
+    int octave = (midi / 12) - 1;
     if (octave < 0 || octave > 9) return '?';
     return (char)('0' + octave);
 }
 
 /* --- Step/slot helpers --- */
+
+/* Resets per-step note hit flags. */
 static void ResetStepHit(void)
 {
     stepHit[0] = false;
@@ -82,6 +113,7 @@ static void ResetStepHit(void)
     stepHit[2] = false;
 }
 
+/* Returns number of required notes for the current step (capped by 3 in logic). */
 static uint8_t GetCurrentSlotCount(void)
 {
     if (currentSong != NULL) {
@@ -93,6 +125,7 @@ static uint8_t GetCurrentSlotCount(void)
     return 0;
 }
 
+/* Counts remaining (not yet hit) required notes for the current step. */
 static uint8_t CountMissingSlots(void)
 {
     uint8_t cnt = 0;
@@ -105,6 +138,10 @@ static uint8_t CountMissingSlots(void)
     return cnt;
 }
 
+/*
+ * Treats remaining slots as correct (used for "skip" via OK button).
+ * This updates stats and marks all required notes as hit.
+ */
 static void AddMissingSlotsAsCorrect(void)
 {
     uint8_t missing = CountMissingSlots();
@@ -113,7 +150,6 @@ static void AddMissingSlotsAsCorrect(void)
     correctPlayed += missing;
     totalPlayed += missing;
 
-    /* Mark all slots as hit */
     uint8_t slots = GetCurrentSlotCount();
     if (slots > 3) slots = 3;
     for (uint8_t i = 0; i < slots; i++) {
@@ -121,6 +157,7 @@ static void AddMissingSlotsAsCorrect(void)
     }
 }
 
+/* Returns true if all required notes for the step have been hit. */
 static bool IsStepComplete(void)
 {
     uint8_t slots = GetCurrentSlotCount();
@@ -133,6 +170,10 @@ static bool IsStepComplete(void)
     return true;
 }
 
+/*
+ * Advances to the next step if available; otherwise enters the summary screen.
+ * This is called after completing a step (or after OK "skip").
+ */
 static void AdvanceOrSummary(void)
 {
     if (currentStepIndex < (totalSteps - 1))
@@ -150,6 +191,8 @@ static void AdvanceOrSummary(void)
 }
 
 /* --- LED helpers --- */
+
+/* Turn on GREEN LED and record timestamp for non-blocking turn-off. */
 static void LedBlinkGreen(void)
 {
     HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_SET);
@@ -157,6 +200,7 @@ static void LedBlinkGreen(void)
     greenLedTick = HAL_GetTick();
 }
 
+/* Turn on RED LED and record timestamp for non-blocking turn-off. */
 static void LedBlinkRed(void)
 {
     HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
@@ -165,6 +209,11 @@ static void LedBlinkRed(void)
 }
 
 /* --- Pitch class mapping for chord mode --- */
+
+/*
+ * Maps (letter + accidental) into pitch class 0..11.
+ * 'H' is treated like 'B' for Polish/German notation.
+ */
 static int8_t NoteToPitchClass(char letter, Accidental accidental)
 {
     int8_t base = -1;
@@ -177,7 +226,7 @@ static int8_t NoteToPitchClass(char letter, Accidental accidental)
         case 'G': base = 7;  break;
         case 'A': base = 9;  break;
         case 'B': base = 11; break;
-        case 'H': base = 11; break; /* Polish/German notation */
+        case 'H': base = 11; break;
         default:  base = -1; break;
     }
     if (base < 0) return -1;
@@ -185,12 +234,13 @@ static int8_t NoteToPitchClass(char letter, Accidental accidental)
     if (accidental == ACC_SHARP) {
         base = (int8_t)((base + 1) % 12);
     } else if (accidental == ACC_FLAT) {
-        base = (int8_t)((base + 11) % 12); /* -1 mod 12 */
+        base = (int8_t)((base + 11) % 12);
     }
     return base;
 }
 
 /* --- Lesson lifecycle --- */
+
 void Lesson_StartSong(Song *song)
 {
     currentSong = song;
@@ -255,6 +305,8 @@ bool Lesson_IsActive(void)
 }
 
 /* --- Summary --- */
+
+/* Renders summary screen (correct/total and percent). */
 static void ShowSummary(void)
 {
     GroveLCD_Clear(&lcd);
@@ -279,6 +331,7 @@ static void ShowSummary(void)
     GroveLCD_Print(&lcd, line2);
 }
 
+/* Switches lesson state into summary and shows the summary screen. */
 static void EnterSummary(void)
 {
     lessonState = LESSON_STATE_SUMMARY;
@@ -286,18 +339,22 @@ static void EnterSummary(void)
 }
 
 /* --- Input handling --- */
+
 void Lesson_HandleInput(uint8_t input)
 {
     if (!lessonActive) return;
 
-    /* In summary: ignore MIDI, exit on any button */
+    /*
+     * In summary screen:
+     * - Ignore MIDI notes
+     * - Any button ends the lesson and returns control to the UI
+     */
     if (lessonState == LESSON_STATE_SUMMARY)
     {
         if (input <= 0x7F) {
-            return; /* ignore notes */
+            return;
         }
 
-        /* Any button -> exit summary and end lesson */
         lessonActive = false;
         lessonState = LESSON_STATE_RUNNING;
         ResetStepHit();
@@ -308,7 +365,7 @@ void Lesson_HandleInput(uint8_t input)
         return;
     }
 
-    /* --- MIDI NOTE ON (0..127) --- */
+    /* --- MIDI note (0..127) --- */
     if (input <= 0x7F)
     {
         totalPlayed++;
@@ -334,7 +391,7 @@ void Lesson_HandleInput(uint8_t input)
                 correctPlayed++;
                 LedBlinkGreen();
 
-                /* NEW: auto-advance when all required slots are hit */
+                /* Auto-advance when all required notes are hit */
                 if (IsStepComplete()) {
                     AdvanceOrSummary();
                 }
@@ -371,7 +428,7 @@ void Lesson_HandleInput(uint8_t input)
                 correctPlayed++;
                 LedBlinkGreen();
 
-                /* NEW: auto-advance when chord notes are all hit */
+                /* Auto-advance when chord tones are all hit */
                 if (IsStepComplete()) {
                     AdvanceOrSummary();
                 }
@@ -389,12 +446,13 @@ void Lesson_HandleInput(uint8_t input)
     /* --- Buttons --- */
     if (input == LESSON_INPUT_BTN_OK)
     {
-        /* Skip: count remaining slots as correct */
+        /* Skip current step: count remaining slots as correct and move forward */
         AddMissingSlotsAsCorrect();
         AdvanceOrSummary();
     }
     else if (input == LESSON_INPUT_BTN_NEXT)
     {
+        /* Go to previous step; if already at step 0 -> exit lesson */
         if (currentStepIndex > 0)
         {
             currentStepIndex--;
@@ -404,7 +462,6 @@ void Lesson_HandleInput(uint8_t input)
         }
         else
         {
-            /* At step 0 -> exit lesson to list (no summary) */
             lessonActive = false;
             ResetStepHit();
             HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
@@ -415,6 +472,7 @@ void Lesson_HandleInput(uint8_t input)
     }
     else if (input == LESSON_INPUT_BTN_RESET)
     {
+        /* Reset to step 0; if already at step 0 -> exit lesson */
         if (currentStepIndex != 0)
         {
             currentStepIndex = 0;
@@ -424,7 +482,6 @@ void Lesson_HandleInput(uint8_t input)
         }
         else
         {
-            /* At step 0 -> exit lesson to list (no summary) */
             lessonActive = false;
             ResetStepHit();
             HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
@@ -435,6 +492,10 @@ void Lesson_HandleInput(uint8_t input)
     }
 }
 
+/*
+ * Periodic non-blocking update for LED blink timing.
+ * Turns LEDs off after LED_BLINK_MS.
+ */
 void Lesson_Update(void)
 {
     uint32_t now = HAL_GetTick();
@@ -451,6 +512,7 @@ void Lesson_Update(void)
 }
 
 /* --- LCD rendering --- */
+
 static void DisplaySongStep(const SongStep *step)
 {
     GroveLCD_Clear(&lcd);
@@ -460,7 +522,7 @@ static void DisplaySongStep(const SongStep *step)
     uint8_t col = 0;
     uint8_t startCol[3] = {0};
 
-    /* Row 0: print notes as e.g. C#4, Db4, E4 */
+    /* Row 0: notes (e.g. C#4, Db4, E4) */
     for (uint8_t i = 0; i < step->noteCount; i++)
     {
         if (i >= 3) break;
@@ -480,12 +542,12 @@ static void DisplaySongStep(const SongStep *step)
             col++;
         }
 
-        /* Octave (from midiNote if present) */
+        /* Octave (derived from MIDI note) */
         char oct = MidiToOctaveChar(step->notes[i].midiNote);
         GroveLCD_WriteChar(&lcd, oct);
         col++;
 
-        /* Space between notes */
+        /* Separator */
         if (i < (step->noteCount - 1) && col < 16) {
             GroveLCD_WriteChar(&lcd, ' ');
             col++;
@@ -494,7 +556,7 @@ static void DisplaySongStep(const SongStep *step)
         if (col >= 16) break;
     }
 
-    /* Row 1: duration icons under first character of each note */
+    /* Row 1: duration icons under the first character of each note */
     for (uint8_t i = 0; i < step->noteCount; i++)
     {
         if (i >= 3) break;
@@ -511,12 +573,12 @@ static void DisplayChordStep(const Chord *chord)
     LCD_ClearRow(0);
     LCD_ClearRow(1);
 
-    /* Line 0: chord name */
+    /* Row 0: chord name */
     GroveLCD_SetCursor(&lcd, 0, 0);
     GroveLCD_Print(&lcd, "Chord:");
     GroveLCD_Print(&lcd, chord->name);
 
-    /* Line 1: chord notes (no durations) */
+    /* Row 1: chord tones (no durations) */
     GroveLCD_SetCursor(&lcd, 1, 0);
 
     for (uint8_t i = 0; i < chord->noteCount; i++)

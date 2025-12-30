@@ -1,5 +1,18 @@
 #include "grove_lcd16x2_i2c.h"
 
+/**
+ * @file grove_lcd16x2_i2c.c
+ * @brief Grove 16x2 LCD (I2C) driver implementation.
+ *
+ * This driver communicates with the Grove LCD backpack using I2C "memory write"
+ * transactions:
+ * - GROVE_LCD_REG_CMD  (0x80): command register
+ * - GROVE_LCD_REG_DATA (0x40): data register
+ *
+ * The command set is HD44780-like (clear, home, entry mode, display control,
+ * function set, set DDRAM address, set CGRAM address).
+ */
+
 /* Grove LCD "registers" */
 #define GROVE_LCD_REG_CMD   (0x80)
 #define GROVE_LCD_REG_DATA  (0x40)
@@ -29,13 +42,17 @@
 #define LCD_2LINE               (0x08)
 #define LCD_5x8DOTS             (0x00)
 
-/* Convert 7-bit address to HAL (8-bit address field) */
+/**
+ * @brief Convert 7-bit I2C address into HAL format (left-shift by 1).
+ */
 static inline uint16_t lcd_hal_addr(const GroveLCD_t *lcd)
 {
     return (uint16_t)(lcd->addr_7bit << 1);
 }
 
-/* Low-level: write one command byte */
+/**
+ * @brief Low-level helper: write one command byte to the LCD command register.
+ */
 static HAL_StatusTypeDef lcd_write_cmd(GroveLCD_t *lcd, uint8_t cmd)
 {
     return HAL_I2C_Mem_Write(
@@ -49,7 +66,9 @@ static HAL_StatusTypeDef lcd_write_cmd(GroveLCD_t *lcd, uint8_t cmd)
     );
 }
 
-/* Low-level: write one data byte */
+/**
+ * @brief Low-level helper: write one data byte to the LCD data register.
+ */
 static HAL_StatusTypeDef lcd_write_data(GroveLCD_t *lcd, uint8_t data)
 {
     return HAL_I2C_Mem_Write(
@@ -68,6 +87,7 @@ HAL_StatusTypeDef GroveLCD_Init(GroveLCD_t *lcd, I2C_HandleTypeDef *hi2c, uint8_
     if (lcd == NULL || hi2c == NULL)
         return HAL_ERROR;
 
+    /* Store I2C handle, address and a conservative default timeout. */
     lcd->hi2c = hi2c;
     lcd->addr_7bit = addr_7bit;
     lcd->timeout_ms = 50;
@@ -76,8 +96,8 @@ HAL_StatusTypeDef GroveLCD_Init(GroveLCD_t *lcd, I2C_HandleTypeDef *hi2c, uint8_
     HAL_Delay(50);
 
     /*
-     * Init sequence based on Seeed examples (HD44780-like).
-     * Keep delays conservative for reliability.
+     * Initialization sequence (HD44780-like).
+     * Delays are conservative for reliability across modules.
      */
     HAL_StatusTypeDef st;
 
@@ -106,15 +126,17 @@ HAL_StatusTypeDef GroveLCD_Init(GroveLCD_t *lcd, I2C_HandleTypeDef *hi2c, uint8_
 
 HAL_StatusTypeDef GroveLCD_Clear(GroveLCD_t *lcd)
 {
+    /* Clear requires a longer execution time on the LCD controller. */
     HAL_StatusTypeDef st = lcd_write_cmd(lcd, LCD_CMD_CLEAR);
-    HAL_Delay(3); // clear needs longer time
+    HAL_Delay(3);
     return st;
 }
 
 HAL_StatusTypeDef GroveLCD_Home(GroveLCD_t *lcd)
 {
+    /* Home requires a longer execution time on the LCD controller. */
     HAL_StatusTypeDef st = lcd_write_cmd(lcd, LCD_CMD_HOME);
-    HAL_Delay(3); // home needs longer time
+    HAL_Delay(3);
     return st;
 }
 
@@ -153,12 +175,12 @@ HAL_StatusTypeDef GroveLCD_CreateChar(GroveLCD_t *lcd, uint8_t slot, const uint8
     if (lcd == NULL || pattern == NULL) return HAL_ERROR;
     if (slot > 7) return HAL_ERROR;
 
-    // 1) Set CGRAM address: 0x40 | (slot * 8)
+    /* 1) Set CGRAM address: 0x40 | (slot * 8) */
     uint8_t cmd = (uint8_t)(LCD_CMD_SET_CGRAM | ((slot & 0x07) << 3));
     HAL_StatusTypeDef st = lcd_write_cmd(lcd, cmd);
     if (st != HAL_OK) return st;
 
-    // 2) Write 8 rows (only lower 5 bits are used)
+    /* 2) Write 8 rows (only lower 5 bits are used by the character generator) */
     for (uint8_t i = 0; i < 8; i++)
     {
         uint8_t row = (uint8_t)(pattern[i] & 0x1F);
@@ -166,7 +188,7 @@ HAL_StatusTypeDef GroveLCD_CreateChar(GroveLCD_t *lcd, uint8_t slot, const uint8
         if (st != HAL_OK) return st;
     }
 
-    // 3) Return to DDRAM (optional but recommended)
+    /* 3) Return to DDRAM (recommended after CGRAM write) */
     st = lcd_write_cmd(lcd, LCD_CMD_SET_DDRAM);
     HAL_Delay(1);
     return st;

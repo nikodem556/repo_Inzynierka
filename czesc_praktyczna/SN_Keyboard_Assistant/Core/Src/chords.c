@@ -1,7 +1,19 @@
 #include "chords.h"
-#include <stdint.h>
 
-/* If midiNote field exists but is not used in chord mode, keep a placeholder. */
+/*
+ * chords.c
+ *
+ * This file contains only constant data definitions:
+ * - Two chord packs: basic and advanced
+ * - Exported registry chordPacks[] and CHORD_PACK_COUNT
+ *
+ * Each chord is defined as up to 3 tones. The tones use NoteEntry:
+ *   - letter + accidental define the pitch class
+ *   - midiNote is not used in chord mode (kept as a placeholder value)
+ *   - lengthIcon is not used in chord mode (set to 0)
+ */
+
+/* Placeholder used for NoteEntry.midiNote in chord mode (not used by matching logic). */
 #define NO_MIDI_NOTE   ((int16_t)-1)
 
 /* Basic chords pack – common chords (C, G, Am, F, Dm, Em) */
@@ -25,8 +37,8 @@ static Chord advancedChords[] = {
 };
 
 /*
- * Exported chord packs.
- * IMPORTANT: direct initialization with pointers to static arrays is a constant initializer.
+ * Exported chord packs registry.
+ * Each entry points to a static chord array defined above.
  */
 ChordPack chordPacks[] = {
     { "Basic chords",
@@ -38,4 +50,5 @@ ChordPack chordPacks[] = {
       advancedChords }
 };
 
+/* Total number of chord packs available in the application. */
 const uint8_t CHORD_PACK_COUNT = (uint8_t)(sizeof(chordPacks) / sizeof(chordPacks[0]));

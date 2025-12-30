@@ -27,25 +27,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  0000d204  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00017e84  00000000  00000000  0000d234  2**0
+ 12 .debug_info   00017e88  00000000  00000000  0000d234  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 00004570  00000000  00000000  000250b8  2**0
+ 13 .debug_abbrev 00004571  00000000  00000000  000250bc  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 000012c0  00000000  00000000  00029628  2**3
+ 14 .debug_aranges 000012c0  00000000  00000000  00029630  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_rnglists 00000e36  00000000  00000000  0002a8e8  2**0
+ 15 .debug_rnglists 00000e36  00000000  00000000  0002a8f0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  00029da9  00000000  00000000  0002b71e  2**0
+ 16 .debug_macro  00029c2d  00000000  00000000  0002b726  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00018f17  00000000  00000000  000554c7  2**0
+ 17 .debug_line   00018db7  00000000  00000000  00055353  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000ef453  00000000  00000000  0006e3de  2**0
+ 18 .debug_str    000ef33c  00000000  00000000  0006e10a  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  0015d831  2**0
+ 19 .comment      00000043  00000000  00000000  0015d446  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000541c  00000000  00000000  0015d874  2**2
+ 20 .debug_frame  0000541c  00000000  00000000  0015d48c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 00000060  00000000  00000000  00162c90  2**0
+ 21 .debug_line_str 00000060  00000000  00000000  001628a8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -430,10 +430,10 @@ Disassembly of section .text:
  800059a:	bf00      	nop
 
 0800059c <LCD_ClearRow>:
-static void DisplayNotesLegend(void);
-static void DisplaySongsList(void);
-static void DisplayChordPacksList(void);
-
+/**
+ * @brief Clears a single LCD row by overwriting it with spaces.
+ * @param row LCD row index (0 or 1 for a 16x2 display).
+ */
 static void LCD_ClearRow(uint8_t row)
 {
  800059c:	b580      	push	{r7, lr}
@@ -447,7 +447,7 @@ static void LCD_ClearRow(uint8_t row)
  80005aa:	4619      	mov	r1, r3
  80005ac:	4805      	ldr	r0, [pc, #20]	@ (80005c4 <LCD_ClearRow+0x28>)
  80005ae:	f000 fccf 	bl	8000f50 <GroveLCD_SetCursor>
-    GroveLCD_Print(&lcd, "                "); // 16 spaces
+    GroveLCD_Print(&lcd, "                "); /* 16 spaces */
  80005b2:	4905      	ldr	r1, [pc, #20]	@ (80005c8 <LCD_ClearRow+0x2c>)
  80005b4:	4803      	ldr	r0, [pc, #12]	@ (80005c4 <LCD_ClearRow+0x28>)
  80005b6:	f000 fcfe 	bl	8000fb6 <GroveLCD_Print>
@@ -461,7 +461,10 @@ static void LCD_ClearRow(uint8_t row)
  80005c8:	0800aa58 	.word	0x0800aa58
 
 080005cc <LCD_WriteCustom>:
-
+/**
+ * @brief Writes one of the LCD custom characters (CGRAM slot 0..7).
+ * @param slot Custom character slot index.
+ */
 static void LCD_WriteCustom(uint8_t slot)
 {
  80005cc:	b580      	push	{r7, lr}
@@ -487,11 +490,11 @@ void App_Init(void)
 {
  80005ec:	b580      	push	{r7, lr}
  80005ee:	af00      	add	r7, sp, #0
-    /* Buttons init (if you have it in your button module) */
+    /* Initialize the button module (debouncing and edge detection). */
     Button_Init();
  80005f0:	f000 fac2 	bl	8000b78 <Button_Init>
 
-    /* LCD is initialized in main.c with GroveLCD_Init() */
+    /* Enter initial state and render the welcome screen. */
     appState = APP_STATE_WELCOME;
  80005f4:	4b03      	ldr	r3, [pc, #12]	@ (8000604 <App_Init+0x18>)
  80005f6:	2200      	movs	r2, #0
@@ -510,7 +513,7 @@ void App_Update(void)
 {
  8000608:	b580      	push	{r7, lr}
  800060a:	af00      	add	r7, sp, #0
-    /* OK button */
+    /* -------- OK button: select/confirm -------- */
     if (Button_WasPressed(BUTTON_OK))
  800060c:	2002      	movs	r0, #2
  800060e:	f000 fbb3 	bl	8000d78 <Button_WasPressed>
@@ -535,6 +538,7 @@ void App_Update(void)
  8000640:	080006d7 	.word	0x080006d7
         {
             case APP_STATE_WELCOME:
+                /* From welcome -> main menu */
                 appState = APP_STATE_MENU_MAIN;
  8000644:	4b8d      	ldr	r3, [pc, #564]	@ (800087c <App_Update+0x274>)
  8000646:	2201      	movs	r2, #1
@@ -549,6 +553,7 @@ void App_Update(void)
  8000654:	e05d      	b.n	8000712 <App_Update+0x10a>
 
             case APP_STATE_MENU_MAIN:
+                /* Enter selected submenu */
                 if (mainMenuIndex == 0) {
  8000656:	4b8a      	ldr	r3, [pc, #552]	@ (8000880 <App_Update+0x278>)
  8000658:	781b      	ldrb	r3, [r3, #0]
@@ -598,6 +603,7 @@ void App_Update(void)
  8000694:	e03d      	b.n	8000712 <App_Update+0x10a>
 
             case APP_STATE_MENU_SONGS:
+                /* Start a song lesson for the currently selected song */
                 appState = APP_STATE_LESSON_SONG;
  8000696:	4b79      	ldr	r3, [pc, #484]	@ (800087c <App_Update+0x274>)
  8000698:	2205      	movs	r2, #5
@@ -618,6 +624,7 @@ void App_Update(void)
  80006b4:	e02d      	b.n	8000712 <App_Update+0x10a>
 
             case APP_STATE_MENU_CHORDPACKS:
+                /* Start a chord exercise for the currently selected pack */
                 appState = APP_STATE_LESSON_CHORD;
  80006b6:	4b71      	ldr	r3, [pc, #452]	@ (800087c <App_Update+0x274>)
  80006b8:	2206      	movs	r2, #6
@@ -636,15 +643,16 @@ void App_Update(void)
  80006d0:	f000 ff6c 	bl	80015ac <Lesson_StartChordExercise>
                 break;
  80006d4:	e01d      	b.n	8000712 <App_Update+0x10a>
-                /* OK does nothing here (RESET goes back) */
                 break;
 
             case APP_STATE_LESSON_SONG:
             case APP_STATE_LESSON_CHORD:
+                /* Forward button input to the lesson engine */
                 Lesson_HandleInput(LESSON_INPUT_BTN_OK);
  80006d6:	20f1      	movs	r0, #241	@ 0xf1
  80006d8:	f001 f882 	bl	80017e0 <Lesson_HandleInput>
 
+                /* If the lesson ended, return to the list from which we started */
                 if (!Lesson_IsActive())
  80006dc:	f000 ffd8 	bl	8001690 <Lesson_IsActive>
  80006e0:	4603      	mov	r3, r0
@@ -653,7 +661,6 @@ void App_Update(void)
  80006e8:	2b00      	cmp	r3, #0
  80006ea:	d011      	beq.n	8000710 <App_Update+0x108>
                 {
-                    /* Lesson ended -> go back to corresponding list */
                     if (appState == APP_STATE_LESSON_SONG) {
  80006ec:	4b63      	ldr	r3, [pc, #396]	@ (800087c <App_Update+0x274>)
  80006ee:	781b      	ldrb	r3, [r3, #0]
@@ -690,7 +697,7 @@ void App_Update(void)
         }
     }
 
-    /* NEXT button */
+    /* -------- NEXT button: navigate down / next item -------- */
     if (Button_WasPressed(BUTTON_NEXT))
  8000712:	2001      	movs	r0, #1
  8000714:	f000 fb30 	bl	8000d78 <Button_WasPressed>
@@ -715,6 +722,7 @@ void App_Update(void)
  8000744:	080007bd 	.word	0x080007bd
         {
             case APP_STATE_MENU_MAIN:
+                /* Cycle through 3 main-menu items */
                 mainMenuIndex = (mainMenuIndex + 1) % 3;
  8000748:	4b4d      	ldr	r3, [pc, #308]	@ (8000880 <App_Update+0x278>)
  800074a:	781b      	ldrb	r3, [r3, #0]
@@ -736,6 +744,7 @@ void App_Update(void)
  800076a:	e049      	b.n	8000800 <App_Update+0x1f8>
 
             case APP_STATE_MENU_SONGS:
+                /* Cycle through songs (if any) */
                 if (SONG_COUNT > 0) {
  800076c:	4b4a      	ldr	r3, [pc, #296]	@ (8000898 <App_Update+0x290>)
  800076e:	781b      	ldrb	r3, [r3, #0]
@@ -760,6 +769,7 @@ void App_Update(void)
  8000792:	e030      	b.n	80007f6 <App_Update+0x1ee>
 
             case APP_STATE_MENU_CHORDPACKS:
+                /* Cycle through chord packs (if any) */
                 if (CHORD_PACK_COUNT > 0) {
  8000794:	4b41      	ldr	r3, [pc, #260]	@ (800089c <App_Update+0x294>)
  8000796:	781b      	ldrb	r3, [r3, #0]
@@ -782,15 +792,16 @@ void App_Update(void)
                 }
                 break;
  80007ba:	e01e      	b.n	80007fa <App_Update+0x1f2>
-                /* single screen -> ignore */
                 break;
 
             case APP_STATE_LESSON_SONG:
             case APP_STATE_LESSON_CHORD:
+                /* Forward button input to the lesson engine */
                 Lesson_HandleInput(LESSON_INPUT_BTN_NEXT);
  80007bc:	20f2      	movs	r0, #242	@ 0xf2
  80007be:	f001 f80f 	bl	80017e0 <Lesson_HandleInput>
 
+                /* If the lesson ended, return to the list */
                 if (!Lesson_IsActive())
  80007c2:	f000 ff65 	bl	8001690 <Lesson_IsActive>
  80007c6:	4603      	mov	r3, r0
@@ -841,7 +852,7 @@ void App_Update(void)
         }
     }
 
-    /* RESET button */
+    /* -------- RESET button: back / cancel -------- */
     if (Button_WasPressed(BUTTON_RESET))
  8000800:	2000      	movs	r0, #0
  8000802:	f000 fab9 	bl	8000d78 <Button_WasPressed>
@@ -863,11 +874,11 @@ void App_Update(void)
  8000820:	3b02      	subs	r3, #2
  8000822:	2b02      	cmp	r3, #2
  8000824:	d820      	bhi.n	8000868 <App_Update+0x260>
-                break;
 
             case APP_STATE_MENU_SONGS:
             case APP_STATE_MENU_CHORDPACKS:
             case APP_STATE_VIEW_LEGEND:
+                /* Back to main menu */
                 appState = APP_STATE_MENU_MAIN;
  8000826:	4b15      	ldr	r3, [pc, #84]	@ (800087c <App_Update+0x274>)
  8000828:	2201      	movs	r2, #1
@@ -879,10 +890,12 @@ void App_Update(void)
 
             case APP_STATE_LESSON_SONG:
             case APP_STATE_LESSON_CHORD:
+                /* Forward reset/cancel to the lesson engine */
                 Lesson_HandleInput(LESSON_INPUT_BTN_RESET);
  8000832:	20f3      	movs	r0, #243	@ 0xf3
  8000834:	f000 ffd4 	bl	80017e0 <Lesson_HandleInput>
 
+                /* If the lesson ended, return to the list */
                 if (!Lesson_IsActive())
  8000838:	f000 ff2a 	bl	8001690 <Lesson_IsActive>
  800083c:	4603      	mov	r3, r0
@@ -930,7 +943,7 @@ void App_Update(void)
         }
     }
 
-    /* Periodic lesson update (non-blocking LED timing, etc.) */
+    /* Periodic lesson update (e.g., non-blocking LED timing, timeouts). */
     Lesson_Update();
  8000872:	f001 f971 	bl	8001b58 <Lesson_Update>
 }
@@ -949,7 +962,7 @@ void App_Update(void)
 
 080008a0 <DisplayWelcomeScreen>:
 
-/* --- Screens --- */
+/* --- Screen rendering functions --- */
 
 static void DisplayWelcomeScreen(void)
 {
@@ -1013,6 +1026,7 @@ static void DisplayMainMenu(void)
  8000906:	4816      	ldr	r0, [pc, #88]	@ (8000960 <DisplayMainMenu+0x74>)
  8000908:	f000 fb22 	bl	8000f50 <GroveLCD_SetCursor>
 
+    /* Print the currently selected main-menu entry */
     if (mainMenuIndex == 0) GroveLCD_Print(&lcd, "Notes symbol");
  800090c:	4b15      	ldr	r3, [pc, #84]	@ (8000964 <DisplayMainMenu+0x78>)
  800090e:	781b      	ldrb	r3, [r3, #0]
@@ -1036,7 +1050,7 @@ static void DisplayMainMenu(void)
  8000932:	480b      	ldr	r0, [pc, #44]	@ (8000960 <DisplayMainMenu+0x74>)
  8000934:	f000 fb3f 	bl	8000fb6 <GroveLCD_Print>
 
-    /* "MENU" in top-right if possible (col 12) */
+    /* Optional header label on the right side */
     GroveLCD_SetCursor(&lcd, 0, 12);
  8000938:	220c      	movs	r2, #12
  800093a:	2100      	movs	r1, #0
@@ -1047,7 +1061,7 @@ static void DisplayMainMenu(void)
  8000944:	4806      	ldr	r0, [pc, #24]	@ (8000960 <DisplayMainMenu+0x74>)
  8000946:	f000 fb36 	bl	8000fb6 <GroveLCD_Print>
 
-    /* Short hint line (must fit 16 cols) */
+    /* Hint line (must fit in 16 columns) */
     GroveLCD_SetCursor(&lcd, 1, 0);
  800094a:	2200      	movs	r2, #0
  800094c:	2101      	movs	r1, #1
@@ -1084,7 +1098,7 @@ static void DisplayNotesLegend(void)
  800098c:	2001      	movs	r0, #1
  800098e:	f7ff fe05 	bl	800059c <LCD_ClearRow>
 
-    /* Example: show sharp + flat and some length icons */
+    /* Example: show sharp + flat and some duration icons */
     GroveLCD_SetCursor(&lcd, 0, 0);
  8000992:	2200      	movs	r2, #0
  8000994:	2100      	movs	r1, #0
@@ -1110,7 +1124,7 @@ static void DisplayNotesLegend(void)
  80009ba:	2101      	movs	r1, #1
  80009bc:	480b      	ldr	r0, [pc, #44]	@ (80009ec <DisplayNotesLegend+0x70>)
  80009be:	f000 fac7 	bl	8000f50 <GroveLCD_SetCursor>
-    /* Show length icons 0..4 */
+    /* Show duration icons 0..4 */
     LCD_WriteCustom(0);
  80009c2:	2000      	movs	r0, #0
  80009c4:	f7ff fe02 	bl	80005cc <LCD_WriteCustom>
@@ -1178,7 +1192,7 @@ static void DisplaySongsList(void)
  8000a36:	490f      	ldr	r1, [pc, #60]	@ (8000a74 <DisplaySongsList+0x78>)
  8000a38:	480b      	ldr	r0, [pc, #44]	@ (8000a68 <DisplaySongsList+0x6c>)
  8000a3a:	f000 fabc 	bl	8000fb6 <GroveLCD_Print>
-        /* (Not truncating here; LCD will just stop at 16 chars.) */
+        /* No explicit truncation; LCD will stop at 16 characters. */
         GroveLCD_Print(&lcd, songs[songListIndex].title);
  8000a3e:	4b0e      	ldr	r3, [pc, #56]	@ (8000a78 <DisplaySongsList+0x7c>)
  8000a40:	781b      	ldrb	r3, [r3, #0]
@@ -1288,10 +1302,10 @@ static void DisplayChordPacksList(void)
  8000b08:	0800aafc 	.word	0x0800aafc
 
 08000b0c <read_raw>:
-} BtnState_t;
-
-static BtnState_t g_btn[BUTTON_COUNT];
-
+ * Returns:
+ * - 1 for released (GPIO HIGH)
+ * - 0 for pressed  (GPIO LOW)
+ */
 static uint8_t read_raw(ButtonType b)
 {
  8000b0c:	b580      	push	{r7, lr}
@@ -1362,8 +1376,10 @@ void Button_Init(void)
  8000b78:	b580      	push	{r7, lr}
  8000b7a:	b08a      	sub	sp, #40	@ 0x28
  8000b7c:	af00      	add	r7, sp, #0
-    /* If you already configure pins in CubeMX, this is optional.
-       Keeping it here is fine as a safety net. */
+    /*
+     * If pins are already configured in CubeMX, this is optional.
+     * Keeping it here is fine as a safety net (input + pull-up).
+     */
     __HAL_RCC_GPIOA_CLK_ENABLE();
  8000b7e:	4b3f      	ldr	r3, [pc, #252]	@ (8000c7c <Button_Init+0x104>)
  8000b80:	6cdb      	ldr	r3, [r3, #76]	@ 0x4c
@@ -1425,6 +1441,7 @@ void Button_Init(void)
  8000be8:	4825      	ldr	r0, [pc, #148]	@ (8000c80 <Button_Init+0x108>)
  8000bea:	f001 fe4f 	bl	800288c <HAL_GPIO_Init>
 
+    /* Initialize software state from the current raw levels. */
     uint32_t now = HAL_GetTick();
  8000bee:	f001 fd0b 	bl	8002608 <HAL_GetTick>
  8000bf2:	6238      	str	r0, [r7, #32]
@@ -1525,6 +1542,7 @@ void Button_Update(void)
  8000ca6:	4603      	mov	r3, r0
  8000ca8:	71bb      	strb	r3, [r7, #6]
 
+        /* Track raw-level changes and reset debounce timer on any transition. */
         if (raw != g_btn[i].last_raw_level) {
  8000caa:	7bfa      	ldrb	r2, [r7, #15]
  8000cac:	4931      	ldr	r1, [pc, #196]	@ (8000d74 <Button_Update+0xec>)
@@ -1562,7 +1580,7 @@ void Button_Update(void)
  8000ce8:	601a      	str	r2, [r3, #0]
         }
 
-        /* If raw has been stable long enough -> accept as stable */
+        /* If the raw level has been stable long enough, accept it as stable. */
         if ((now - g_btn[i].last_change_ms) >= DEBOUNCE_MS)
  8000cea:	7bfa      	ldrb	r2, [r7, #15]
  8000cec:	4921      	ldr	r1, [pc, #132]	@ (8000d74 <Button_Update+0xec>)
@@ -1591,7 +1609,7 @@ void Button_Update(void)
  8000d16:	429a      	cmp	r2, r3
  8000d18:	d021      	beq.n	8000d5e <Button_Update+0xd6>
             {
-                /* Edge detected on stable signal */
+                /* Stable edge detected */
                 uint8_t prev = g_btn[i].stable_level;
  8000d1a:	7bfa      	ldrb	r2, [r7, #15]
  8000d1c:	4915      	ldr	r1, [pc, #84]	@ (8000d74 <Button_Update+0xec>)
@@ -1613,7 +1631,7 @@ void Button_Update(void)
  8000d3a:	79ba      	ldrb	r2, [r7, #6]
  8000d3c:	701a      	strb	r2, [r3, #0]
 
-                /* Released->Pressed = 1->0 */
+                /* Press event = released->pressed transition (1->0) */
                 if (prev == 1U && raw == 0U) {
  8000d3e:	797b      	ldrb	r3, [r7, #5]
  8000d40:	2b01      	cmp	r3, #1
@@ -1667,6 +1685,7 @@ bool Button_WasPressed(ButtonType button)
  8000d88:	2300      	movs	r3, #0
  8000d8a:	e017      	b.n	8000dbc <Button_WasPressed+0x44>
 
+    /* One-shot: return true once and clear the latched flag. */
     if (g_btn[button].pressed_event) {
  8000d8c:	79fa      	ldrb	r2, [r7, #7]
  8000d8e:	490e      	ldr	r1, [pc, #56]	@ (8000dc8 <Button_WasPressed+0x50>)
@@ -1705,10 +1724,10 @@ bool Button_WasPressed(ButtonType button)
  8000dc8:	20000224 	.word	0x20000224
 
 08000dcc <lcd_hal_addr>:
-#define LCD_2LINE               (0x08)
-#define LCD_5x8DOTS             (0x00)
 
-/* Convert 7-bit address to HAL (8-bit address field) */
+/**
+ * @brief Convert 7-bit I2C address into HAL format (left-shift by 1).
+ */
 static inline uint16_t lcd_hal_addr(const GroveLCD_t *lcd)
 {
  8000dcc:	b480      	push	{r7}
@@ -1729,7 +1748,9 @@ static inline uint16_t lcd_hal_addr(const GroveLCD_t *lcd)
 
 08000de8 <lcd_write_cmd>:
 
-/* Low-level: write one command byte */
+/**
+ * @brief Low-level helper: write one command byte to the LCD command register.
+ */
 static HAL_StatusTypeDef lcd_write_cmd(GroveLCD_t *lcd, uint8_t cmd)
 {
  8000de8:	b590      	push	{r4, r7, lr}
@@ -1770,7 +1791,9 @@ static HAL_StatusTypeDef lcd_write_cmd(GroveLCD_t *lcd, uint8_t cmd)
 
 08000e24 <lcd_write_data>:
 
-/* Low-level: write one data byte */
+/**
+ * @brief Low-level helper: write one data byte to the LCD data register.
+ */
 static HAL_StatusTypeDef lcd_write_data(GroveLCD_t *lcd, uint8_t data)
 {
  8000e24:	b590      	push	{r4, r7, lr}
@@ -1831,6 +1854,7 @@ HAL_StatusTypeDef GroveLCD_Init(GroveLCD_t *lcd, I2C_HandleTypeDef *hi2c, uint8_
  8000e7a:	2301      	movs	r3, #1
  8000e7c:	e052      	b.n	8000f24 <GroveLCD_Init+0xc4>
 
+    /* Store I2C handle, address and a conservative default timeout. */
     lcd->hi2c = hi2c;
  8000e7e:	68fb      	ldr	r3, [r7, #12]
  8000e80:	68ba      	ldr	r2, [r7, #8]
@@ -1848,8 +1872,8 @@ HAL_StatusTypeDef GroveLCD_Init(GroveLCD_t *lcd, I2C_HandleTypeDef *hi2c, uint8_
     HAL_Delay(50);
  8000e90:	2032      	movs	r0, #50	@ 0x32
  8000e92:	f001 fbc5 	bl	8002620 <HAL_Delay>
-     * Init sequence based on Seeed examples (HD44780-like).
-     * Keep delays conservative for reliability.
+     * Initialization sequence (HD44780-like).
+     * Delays are conservative for reliability across modules.
      */
     HAL_StatusTypeDef st;
 
@@ -1949,13 +1973,14 @@ HAL_StatusTypeDef GroveLCD_Clear(GroveLCD_t *lcd)
  8000f2e:	b084      	sub	sp, #16
  8000f30:	af00      	add	r7, sp, #0
  8000f32:	6078      	str	r0, [r7, #4]
+    /* Clear requires a longer execution time on the LCD controller. */
     HAL_StatusTypeDef st = lcd_write_cmd(lcd, LCD_CMD_CLEAR);
  8000f34:	2101      	movs	r1, #1
  8000f36:	6878      	ldr	r0, [r7, #4]
  8000f38:	f7ff ff56 	bl	8000de8 <lcd_write_cmd>
  8000f3c:	4603      	mov	r3, r0
  8000f3e:	73fb      	strb	r3, [r7, #15]
-    HAL_Delay(3); // clear needs longer time
+    HAL_Delay(3);
  8000f40:	2003      	movs	r0, #3
  8000f42:	f001 fb6d 	bl	8002620 <HAL_Delay>
     return st;
@@ -1967,7 +1992,7 @@ HAL_StatusTypeDef GroveLCD_Clear(GroveLCD_t *lcd)
  8000f4e:	bd80      	pop	{r7, pc}
 
 08000f50 <GroveLCD_SetCursor>:
-    HAL_Delay(3); // home needs longer time
+    HAL_Delay(3);
     return st;
 }
 
@@ -2119,7 +2144,7 @@ HAL_StatusTypeDef GroveLCD_CreateChar(GroveLCD_t *lcd, uint8_t slot, const uint8
  800102a:	2301      	movs	r3, #1
  800102c:	e03c      	b.n	80010a8 <GroveLCD_CreateChar+0xa2>
 
-    // 1) Set CGRAM address: 0x40 | (slot * 8)
+    /* 1) Set CGRAM address: 0x40 | (slot * 8) */
     uint8_t cmd = (uint8_t)(LCD_CMD_SET_CGRAM | ((slot & 0x07) << 3));
  800102e:	f997 300b 	ldrsb.w	r3, [r7, #11]
  8001032:	00db      	lsls	r3, r3, #3
@@ -2143,7 +2168,7 @@ HAL_StatusTypeDef GroveLCD_CreateChar(GroveLCD_t *lcd, uint8_t slot, const uint8
  8001058:	7d7b      	ldrb	r3, [r7, #21]
  800105a:	e025      	b.n	80010a8 <GroveLCD_CreateChar+0xa2>
 
-    // 2) Write 8 rows (only lower 5 bits are used)
+    /* 2) Write 8 rows (only lower 5 bits are used by the character generator) */
     for (uint8_t i = 0; i < 8; i++)
  800105c:	2300      	movs	r3, #0
  800105e:	75fb      	strb	r3, [r7, #23]
@@ -2178,7 +2203,7 @@ HAL_StatusTypeDef GroveLCD_CreateChar(GroveLCD_t *lcd, uint8_t slot, const uint8
  8001092:	d9e6      	bls.n	8001062 <GroveLCD_CreateChar+0x5c>
     }
 
-    // 3) Return to DDRAM (optional but recommended)
+    /* 3) Return to DDRAM (recommended after CGRAM write) */
     st = lcd_write_cmd(lcd, LCD_CMD_SET_DDRAM);
  8001094:	2180      	movs	r1, #128	@ 0x80
  8001096:	68f8      	ldr	r0, [r7, #12]
@@ -2197,10 +2222,10 @@ HAL_StatusTypeDef GroveLCD_CreateChar(GroveLCD_t *lcd, uint8_t slot, const uint8
  80010ae:	bd80      	pop	{r7, pc}
 
 080010b0 <LCD_ClearRow>:
-static bool IsStepComplete(void);
-static void AdvanceOrSummary(void);
 
 /* --- Local LCD helpers --- */
+
+/* Clears one LCD row by overwriting it with spaces. */
 static void LCD_ClearRow(uint8_t row)
 {
  80010b0:	b580      	push	{r7, lr}
@@ -2229,6 +2254,7 @@ static void LCD_ClearRow(uint8_t row)
 
 080010e0 <LCD_WriteCustom>:
 
+/* Writes one custom character (CGRAM slot 0..7) to the LCD. */
 static void LCD_WriteCustom(uint8_t slot)
 {
  80010e0:	b580      	push	{r7, lr}
@@ -2249,7 +2275,10 @@ static void LCD_WriteCustom(uint8_t slot)
  80010fc:	200002c8 	.word	0x200002c8
 
 08001100 <MidiToOctaveChar>:
-
+/*
+ * Convert MIDI note number to octave character.
+ * MIDI convention: C4=60 -> octave 4. Formula: octave = (midi/12) - 1.
+ */
 static char MidiToOctaveChar(int8_t midi)
 {
  8001100:	b480      	push	{r7}
@@ -2263,7 +2292,7 @@ static char MidiToOctaveChar(int8_t midi)
  8001110:	da01      	bge.n	8001116 <MidiToOctaveChar+0x16>
  8001112:	233f      	movs	r3, #63	@ 0x3f
  8001114:	e016      	b.n	8001144 <MidiToOctaveChar+0x44>
-    int octave = (midi / 12) - 1; /* MIDI convention: C4=60 */
+    int octave = (midi / 12) - 1;
  8001116:	f997 3007 	ldrsb.w	r3, [r7, #7]
  800111a:	4a0d      	ldr	r2, [pc, #52]	@ (8001150 <MidiToOctaveChar+0x50>)
  800111c:	fb82 1203 	smull	r1, r2, r2, r3
@@ -2298,6 +2327,8 @@ static char MidiToOctaveChar(int8_t midi)
 08001154 <ResetStepHit>:
 
 /* --- Step/slot helpers --- */
+
+/* Resets per-step note hit flags. */
 static void ResetStepHit(void)
 {
  8001154:	b480      	push	{r7}
@@ -2323,6 +2354,7 @@ static void ResetStepHit(void)
 
 08001178 <GetCurrentSlotCount>:
 
+/* Returns number of required notes for the current step (capped by 3 in logic). */
 static uint8_t GetCurrentSlotCount(void)
 {
  8001178:	b480      	push	{r7}
@@ -2382,6 +2414,7 @@ static uint8_t GetCurrentSlotCount(void)
 
 080011dc <CountMissingSlots>:
 
+/* Counts remaining (not yet hit) required notes for the current step. */
 static uint8_t CountMissingSlots(void)
 {
  80011dc:	b580      	push	{r7, lr}
@@ -2435,7 +2468,10 @@ static uint8_t CountMissingSlots(void)
  800122c:	20000254 	.word	0x20000254
 
 08001230 <AddMissingSlotsAsCorrect>:
-
+/*
+ * Treats remaining slots as correct (used for "skip" via OK button).
+ * This updates stats and marks all required notes as hit.
+ */
 static void AddMissingSlotsAsCorrect(void)
 {
  8001230:	b580      	push	{r7, lr}
@@ -2465,7 +2501,6 @@ static void AddMissingSlotsAsCorrect(void)
  8001258:	4a0f      	ldr	r2, [pc, #60]	@ (8001298 <AddMissingSlotsAsCorrect+0x68>)
  800125a:	6013      	str	r3, [r2, #0]
 
-    /* Mark all slots as hit */
     uint8_t slots = GetCurrentSlotCount();
  800125c:	f7ff ff8c 	bl	8001178 <GetCurrentSlotCount>
  8001260:	4603      	mov	r3, r0
@@ -2507,6 +2542,7 @@ static void AddMissingSlotsAsCorrect(void)
 
 080012a0 <IsStepComplete>:
 
+/* Returns true if all required notes for the step have been hit. */
 static bool IsStepComplete(void)
 {
  80012a0:	b580      	push	{r7, lr}
@@ -2562,7 +2598,10 @@ static bool IsStepComplete(void)
  80012f4:	20000254 	.word	0x20000254
 
 080012f8 <AdvanceOrSummary>:
-
+/*
+ * Advances to the next step if available; otherwise enters the summary screen.
+ * This is called after completing a step (or after OK "skip").
+ */
 static void AdvanceOrSummary(void)
 {
  80012f8:	b580      	push	{r7, lr}
@@ -2643,6 +2682,8 @@ static void AdvanceOrSummary(void)
 0800137c <LedBlinkGreen>:
 
 /* --- LED helpers --- */
+
+/* Turn on GREEN LED and record timestamp for non-blocking turn-off. */
 static void LedBlinkGreen(void)
 {
  800137c:	b580      	push	{r7, lr}
@@ -2671,6 +2712,7 @@ static void LedBlinkGreen(void)
 
 080013ac <LedBlinkRed>:
 
+/* Turn on RED LED and record timestamp for non-blocking turn-off. */
 static void LedBlinkRed(void)
 {
  80013ac:	b580      	push	{r7, lr}
@@ -2698,8 +2740,10 @@ static void LedBlinkRed(void)
  80013d8:	2000026c 	.word	0x2000026c
 
 080013dc <NoteToPitchClass>:
-
-/* --- Pitch class mapping for chord mode --- */
+/*
+ * Maps (letter + accidental) into pitch class 0..11.
+ * 'H' is treated like 'B' for Polish/German notation.
+ */
 static int8_t NoteToPitchClass(char letter, Accidental accidental)
 {
  80013dc:	b480      	push	{r7}
@@ -2758,7 +2802,7 @@ static int8_t NoteToPitchClass(char letter, Accidental accidental)
  8001444:	230b      	movs	r3, #11
  8001446:	73fb      	strb	r3, [r7, #15]
  8001448:	e005      	b.n	8001456 <NoteToPitchClass+0x7a>
-        case 'H': base = 11; break; /* Polish/German notation */
+        case 'H': base = 11; break;
  800144a:	230b      	movs	r3, #11
  800144c:	73fb      	strb	r3, [r7, #15]
  800144e:	e002      	b.n	8001456 <NoteToPitchClass+0x7a>
@@ -2798,7 +2842,7 @@ static int8_t NoteToPitchClass(char letter, Accidental accidental)
  800148c:	79bb      	ldrb	r3, [r7, #6]
  800148e:	2b02      	cmp	r3, #2
  8001490:	d110      	bne.n	80014b4 <NoteToPitchClass+0xd8>
-        base = (int8_t)((base + 11) % 12); /* -1 mod 12 */
+        base = (int8_t)((base + 11) % 12);
  8001492:	f997 300f 	ldrsb.w	r3, [r7, #15]
  8001496:	f103 020b 	add.w	r2, r3, #11
  800149a:	4b0a      	ldr	r3, [pc, #40]	@ (80014c4 <NoteToPitchClass+0xe8>)
@@ -2827,6 +2871,7 @@ static int8_t NoteToPitchClass(char letter, Accidental accidental)
 080014c8 <Lesson_StartSong>:
 
 /* --- Lesson lifecycle --- */
+
 void Lesson_StartSong(Song *song)
 {
  80014c8:	b580      	push	{r7, lr}
@@ -3097,6 +3142,8 @@ bool Lesson_IsActive(void)
 080016a8 <ShowSummary>:
 
 /* --- Summary --- */
+
+/* Renders summary screen (correct/total and percent). */
 static void ShowSummary(void)
 {
  80016a8:	e92d 4fb0 	stmdb	sp!, {r4, r5, r7, r8, r9, sl, fp, lr}
@@ -3231,6 +3278,7 @@ static void ShowSummary(void)
 
 080017c8 <EnterSummary>:
 
+/* Switches lesson state into summary and shows the summary screen. */
 static void EnterSummary(void)
 {
  80017c8:	b580      	push	{r7, lr}
@@ -3250,6 +3298,7 @@ static void EnterSummary(void)
 080017e0 <Lesson_HandleInput>:
 
 /* --- Input handling --- */
+
 void Lesson_HandleInput(uint8_t input)
 {
  80017e0:	b580      	push	{r7, lr}
@@ -3264,8 +3313,11 @@ void Lesson_HandleInput(uint8_t input)
  80017f2:	b2db      	uxtb	r3, r3
  80017f4:	2b00      	cmp	r3, #0
  80017f6:	f040 8195 	bne.w	8001b24 <Lesson_HandleInput+0x344>
-
-    /* In summary: ignore MIDI, exit on any button */
+    /*
+     * In summary screen:
+     * - Ignore MIDI notes
+     * - Any button ends the lesson and returns control to the UI
+     */
     if (lessonState == LESSON_STATE_SUMMARY)
  80017fa:	4ba4      	ldr	r3, [pc, #656]	@ (8001a8c <Lesson_HandleInput+0x2ac>)
  80017fc:	781b      	ldrb	r3, [r3, #0]
@@ -3276,10 +3328,9 @@ void Lesson_HandleInput(uint8_t input)
  8001802:	f997 3007 	ldrsb.w	r3, [r7, #7]
  8001806:	2b00      	cmp	r3, #0
  8001808:	f280 818e 	bge.w	8001b28 <Lesson_HandleInput+0x348>
-            return; /* ignore notes */
+            return;
         }
 
-        /* Any button -> exit summary and end lesson */
         lessonActive = false;
  800180c:	4b9e      	ldr	r3, [pc, #632]	@ (8001a88 <Lesson_HandleInput+0x2a8>)
  800180e:	2200      	movs	r2, #0
@@ -3312,7 +3363,7 @@ void Lesson_HandleInput(uint8_t input)
  800183c:	e17b      	b.n	8001b36 <Lesson_HandleInput+0x356>
     }
 
-    /* --- MIDI NOTE ON (0..127) --- */
+    /* --- MIDI note (0..127) --- */
     if (input <= 0x7F)
  800183e:	f997 3007 	ldrsb.w	r3, [r7, #7]
  8001842:	2b00      	cmp	r3, #0
@@ -3415,7 +3466,7 @@ void Lesson_HandleInput(uint8_t input)
                 LedBlinkGreen();
  80018de:	f7ff fd4d 	bl	800137c <LedBlinkGreen>
 
-                /* NEW: auto-advance when all required slots are hit */
+                /* Auto-advance when all required notes are hit */
                 if (IsStepComplete()) {
  80018e2:	f7ff fcdd 	bl	80012a0 <IsStepComplete>
  80018e6:	4603      	mov	r3, r0
@@ -3558,7 +3609,7 @@ void Lesson_HandleInput(uint8_t input)
                 LedBlinkGreen();
  80019c0:	f7ff fcdc 	bl	800137c <LedBlinkGreen>
 
-                /* NEW: auto-advance when chord notes are all hit */
+                /* Auto-advance when chord tones are all hit */
                 if (IsStepComplete()) {
  80019c4:	f7ff fc6c 	bl	80012a0 <IsStepComplete>
  80019c8:	4603      	mov	r3, r0
@@ -3593,7 +3644,7 @@ void Lesson_HandleInput(uint8_t input)
  80019e8:	2bf1      	cmp	r3, #241	@ 0xf1
  80019ea:	d104      	bne.n	80019f6 <Lesson_HandleInput+0x216>
     {
-        /* Skip: count remaining slots as correct */
+        /* Skip current step: count remaining slots as correct and move forward */
         AddMissingSlotsAsCorrect();
  80019ec:	f7ff fc20 	bl	8001230 <AddMissingSlotsAsCorrect>
         AdvanceOrSummary();
@@ -3605,6 +3656,7 @@ void Lesson_HandleInput(uint8_t input)
  80019f8:	2bf2      	cmp	r3, #242	@ 0xf2
  80019fa:	d15f      	bne.n	8001abc <Lesson_HandleInput+0x2dc>
     {
+        /* Go to previous step; if already at step 0 -> exit lesson */
         if (currentStepIndex > 0)
  80019fc:	4b29      	ldr	r3, [pc, #164]	@ (8001aa4 <Lesson_HandleInput+0x2c4>)
  80019fe:	781b      	ldrb	r3, [r3, #0]
@@ -3658,7 +3710,6 @@ void Lesson_HandleInput(uint8_t input)
         }
         else
         {
-            /* At step 0 -> exit lesson to list (no summary) */
             lessonActive = false;
  8001a5a:	4b0b      	ldr	r3, [pc, #44]	@ (8001a88 <Lesson_HandleInput+0x2a8>)
  8001a5c:	2200      	movs	r2, #0
@@ -3705,6 +3756,7 @@ void Lesson_HandleInput(uint8_t input)
  8001abe:	2bf3      	cmp	r3, #243	@ 0xf3
  8001ac0:	d139      	bne.n	8001b36 <Lesson_HandleInput+0x356>
     {
+        /* Reset to step 0; if already at step 0 -> exit lesson */
         if (currentStepIndex != 0)
  8001ac2:	4b1e      	ldr	r3, [pc, #120]	@ (8001b3c <Lesson_HandleInput+0x35c>)
  8001ac4:	781b      	ldrb	r3, [r3, #0]
@@ -3738,7 +3790,6 @@ void Lesson_HandleInput(uint8_t input)
         }
         else
         {
-            /* At step 0 -> exit lesson to list (no summary) */
             lessonActive = false;
  8001af8:	4b13      	ldr	r3, [pc, #76]	@ (8001b48 <Lesson_HandleInput+0x368>)
  8001afa:	2200      	movs	r2, #0
@@ -3767,7 +3818,7 @@ void Lesson_HandleInput(uint8_t input)
     if (!lessonActive) return;
  8001b24:	bf00      	nop
  8001b26:	e006      	b.n	8001b36 <Lesson_HandleInput+0x356>
-            return; /* ignore notes */
+            return;
  8001b28:	bf00      	nop
  8001b2a:	e004      	b.n	8001b36 <Lesson_HandleInput+0x356>
             return;
@@ -3793,7 +3844,10 @@ void Lesson_HandleInput(uint8_t input)
  8001b54:	20000265 	.word	0x20000265
 
 08001b58 <Lesson_Update>:
-
+/*
+ * Periodic non-blocking update for LED blink timing.
+ * Turns LEDs off after LED_BLINK_MS.
+ */
 void Lesson_Update(void)
 {
  8001b58:	b580      	push	{r7, lr}
@@ -3860,6 +3914,7 @@ void Lesson_Update(void)
 08001bc8 <DisplaySongStep>:
 
 /* --- LCD rendering --- */
+
 static void DisplaySongStep(const SongStep *step)
 {
  8001bc8:	b580      	push	{r7, lr}
@@ -3887,7 +3942,7 @@ static void DisplaySongStep(const SongStep *step)
  8001bf0:	460a      	mov	r2, r1
  8001bf2:	709a      	strb	r2, [r3, #2]
 
-    /* Row 0: print notes as e.g. C#4, Db4, E4 */
+    /* Row 0: notes (e.g. C#4, Db4, E4) */
     for (uint8_t i = 0; i < step->noteCount; i++)
  8001bf4:	2300      	movs	r3, #0
  8001bf6:	73bb      	strb	r3, [r7, #14]
@@ -3959,7 +4014,7 @@ static void DisplaySongStep(const SongStep *step)
  8001c64:	73fb      	strb	r3, [r7, #15]
         }
 
-        /* Octave (from midiNote if present) */
+        /* Octave (derived from MIDI note) */
         char oct = MidiToOctaveChar(step->notes[i].midiNote);
  8001c66:	7bbb      	ldrb	r3, [r7, #14]
  8001c68:	687a      	ldr	r2, [r7, #4]
@@ -3980,7 +4035,7 @@ static void DisplaySongStep(const SongStep *step)
  8001c88:	3301      	adds	r3, #1
  8001c8a:	73fb      	strb	r3, [r7, #15]
 
-        /* Space between notes */
+        /* Separator */
         if (i < (step->noteCount - 1) && col < 16) {
  8001c8c:	7bba      	ldrb	r2, [r7, #14]
  8001c8e:	687b      	ldr	r3, [r7, #4]
@@ -4022,7 +4077,7 @@ static void DisplaySongStep(const SongStep *step)
  8001cc8:	bf00      	nop
     }
 
-    /* Row 1: duration icons under first character of each note */
+    /* Row 1: duration icons under the first character of each note */
     for (uint8_t i = 0; i < step->noteCount; i++)
  8001cca:	2300      	movs	r3, #0
  8001ccc:	737b      	strb	r3, [r7, #13]
@@ -4096,7 +4151,7 @@ static void DisplayChordStep(const Chord *chord)
  8001d3c:	2001      	movs	r0, #1
  8001d3e:	f7ff f9b7 	bl	80010b0 <LCD_ClearRow>
 
-    /* Line 0: chord name */
+    /* Row 0: chord name */
     GroveLCD_SetCursor(&lcd, 0, 0);
  8001d42:	2200      	movs	r2, #0
  8001d44:	2100      	movs	r1, #0
@@ -4113,7 +4168,7 @@ static void DisplayChordStep(const Chord *chord)
  8001d5a:	4822      	ldr	r0, [pc, #136]	@ (8001de4 <DisplayChordStep+0xbc>)
  8001d5c:	f7ff f92b 	bl	8000fb6 <GroveLCD_Print>
 
-    /* Line 1: chord notes (no durations) */
+    /* Row 1: chord tones (no durations) */
     GroveLCD_SetCursor(&lcd, 1, 0);
  8001d60:	2200      	movs	r2, #0
  8001d62:	2101      	movs	r1, #1
@@ -4266,21 +4321,21 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  /* Reset peripherals, init Flash + SysTick. */
   HAL_Init();
  8001e42:	f000 fb71 	bl	8002528 <HAL_Init>
 
   /* USER CODE BEGIN Init */
   /* USER CODE END Init */
 
-  /* Configure the system clock */
+  /* Configure the system clock. */
   SystemClock_Config();
  8001e46:	f000 f8ab 	bl	8001fa0 <SystemClock_Config>
 
   /* USER CODE BEGIN SysInit */
   /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
+  /* Initialize all configured peripherals. */
   MX_GPIO_Init();
  8001e4a:	f000 f94b 	bl	80020e4 <MX_GPIO_Init>
   MX_USB_HOST_Init();
@@ -4289,18 +4344,19 @@ int main(void)
  8001e52:	f000 f907 	bl	8002064 <MX_I2C1_Init>
 
   /* USER CODE BEGIN 2 */
+  /* SWV/ITM banner (visible in CubeIDE ITM Data Console). */
   printf("\r\n==== SN_Keyboard_assistant started (SWV printf active) ====\r\n");
  8001e56:	4841      	ldr	r0, [pc, #260]	@ (8001f5c <main+0x120>)
  8001e58:	f007 fe52 	bl	8009b00 <puts>
 
-  /* LCD init */
+  /* LCD initialization (Grove 16x2 over I2C). */
   GroveLCD_Init(&lcd, &hi2c1, GROVE_LCD_I2C_ADDR_7BIT_DEFAULT);
  8001e5c:	223e      	movs	r2, #62	@ 0x3e
  8001e5e:	4940      	ldr	r1, [pc, #256]	@ (8001f60 <main+0x124>)
  8001e60:	4840      	ldr	r0, [pc, #256]	@ (8001f64 <main+0x128>)
  8001e62:	f7fe fffd 	bl	8000e60 <GroveLCD_Init>
 
-  /* Upload custom chars into CGRAM slots 0..6 */
+  /* Upload custom chars into CGRAM slots 0..6. */
   GroveLCD_CreateChar(&lcd, 0, CH_WHOLE);
  8001e66:	4a40      	ldr	r2, [pc, #256]	@ (8001f68 <main+0x12c>)
  8001e68:	2100      	movs	r1, #0
@@ -4337,18 +4393,18 @@ int main(void)
  8001ea6:	482f      	ldr	r0, [pc, #188]	@ (8001f64 <main+0x128>)
  8001ea8:	f7ff f8ad 	bl	8001006 <GroveLCD_CreateChar>
 
-  /* Start UI state machine (shows Welcome screen) */
+  /* Start the application UI state machine (welcome screen etc.). */
   App_Init();
  8001eac:	f7fe fb9e 	bl	80005ec <App_Init>
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USB Host background processing */
+    /* Maintain USB Host stack (enumeration, transfers, class handling). */
     MX_USB_HOST_Process();
  8001eb0:	f007 f952 	bl	8009158 <MX_USB_HOST_Process>
 
-    /* Log application state changes */
+    /* Print USB app state transitions only once (no spam every loop). */
     if (Appli_state != prevState)
  8001eb4:	4b33      	ldr	r3, [pc, #204]	@ (8001f84 <main+0x148>)
  8001eb6:	781a      	ldrb	r2, [r3, #0]
@@ -4405,7 +4461,7 @@ int main(void)
  8001f02:	701a      	strb	r2, [r3, #0]
     }
 
-    /* Read MIDI events and forward NOTE ON to Lesson only when lesson is active */
+    /* Read MIDI events and forward NOTE ON only when the lesson is active. */
     if (Appli_state == APPLICATION_READY || Appli_state == APPLICATION_START)
  8001f04:	4b1f      	ldr	r3, [pc, #124]	@ (8001f84 <main+0x148>)
  8001f06:	781b      	ldrb	r3, [r3, #0]
@@ -4451,7 +4507,7 @@ int main(void)
  8001f46:	2b00      	cmp	r3, #0
  8001f48:	d003      	beq.n	8001f52 <main+0x116>
           {
-            /* Lesson_HandleInput treats 0..127 as MIDI notes */
+            /* Lesson_HandleInput treats 0..127 as MIDI notes. */
             Lesson_HandleInput(note);
  8001f4a:	79bb      	ldrb	r3, [r7, #6]
  8001f4c:	4618      	mov	r0, r3
@@ -4460,7 +4516,7 @@ int main(void)
       }
     }
 
-    /* Update debouncing and run UI/menu logic */
+    /* Poll buttons (debounce/edge) and run UI/menu logic. */
     Button_Update();
  8001f52:	f7fe fe99 	bl	8000c88 <Button_Update>
     App_Update();
@@ -4486,10 +4542,10 @@ int main(void)
  8001f9c:	200002dc 	.word	0x200002dc
 
 08001fa0 <SystemClock_Config>:
-/**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+}
+
+/* (rest of CubeMX-generated init code unchanged) */
+
 void SystemClock_Config(void)
 {
  8001fa0:	b580      	push	{r7, lr}
@@ -4510,7 +4566,6 @@ void SystemClock_Config(void)
  8001fbe:	60da      	str	r2, [r3, #12]
  8001fc0:	611a      	str	r2, [r3, #16]
 
-  /** Configure the main internal regulator output voltage */
   if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
  8001fc2:	f44f 7000 	mov.w	r0, #512	@ 0x200
  8001fc6:	f002 ff3f 	bl	8004e48 <HAL_PWREx_ControlVoltageScaling>
@@ -4522,7 +4577,6 @@ void SystemClock_Config(void)
  8001fd0:	f000 f907 	bl	80021e2 <Error_Handler>
   }
 
-  /** Configure LSE Drive Capability */
   HAL_PWR_EnableBkUpAccess();
  8001fd4:	f002 ff1a 	bl	8004e0c <HAL_PWR_EnableBkUpAccess>
   __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
@@ -4532,7 +4586,6 @@ void SystemClock_Config(void)
  8001fe0:	f023 0318 	bic.w	r3, r3, #24
  8001fe4:	f8c2 3090 	str.w	r3, [r2, #144]	@ 0x90
 
-  /** Initializes the RCC Oscillators according to the specified parameters */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
  8001fe8:	2314      	movs	r3, #20
  8001fea:	617b      	str	r3, [r7, #20]
@@ -4581,7 +4634,6 @@ void SystemClock_Config(void)
  8002028:	f000 f8db 	bl	80021e2 <Error_Handler>
   }
 
-  /** Initializes the CPU, AHB and APB buses clocks */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
  800202c:	230f      	movs	r3, #15
  800202e:	603b      	str	r3, [r7, #0]
@@ -4612,7 +4664,6 @@ void SystemClock_Config(void)
  8002050:	f000 f8c7 	bl	80021e2 <Error_Handler>
   }
 
-  /** Enable MSI Auto calibration */
   HAL_RCCEx_EnableMSIPLLMode();
  8002054:	f004 f810 	bl	8006078 <HAL_RCCEx_EnableMSIPLLMode>
 }
@@ -4623,10 +4674,7 @@ void SystemClock_Config(void)
  8002060:	40021000 	.word	0x40021000
 
 08002064 <MX_I2C1_Init>:
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
+
 static void MX_I2C1_Init(void)
 {
  8002064:	b580      	push	{r7, lr}
@@ -4710,10 +4758,7 @@ static void MX_I2C1_Init(void)
  80020e0:	00b07cb4 	.word	0x00b07cb4
 
 080020e4 <MX_GPIO_Init>:
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
+
 static void MX_GPIO_Init(void)
 {
  80020e4:	b580      	push	{r7, lr}
@@ -4728,7 +4773,6 @@ static void MX_GPIO_Init(void)
  80020f6:	60da      	str	r2, [r3, #12]
  80020f8:	611a      	str	r2, [r3, #16]
 
-  /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
  80020fa:	4b30      	ldr	r3, [pc, #192]	@ (80021bc <MX_GPIO_Init+0xd8>)
  80020fc:	6cdb      	ldr	r3, [r3, #76]	@ 0x4c
@@ -4774,14 +4818,12 @@ static void MX_GPIO_Init(void)
  8002156:	607b      	str	r3, [r7, #4]
  8002158:	687b      	ldr	r3, [r7, #4]
 
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_RESET);
  800215a:	2200      	movs	r2, #0
  800215c:	2103      	movs	r1, #3
  800215e:	4818      	ldr	r0, [pc, #96]	@ (80021c0 <MX_GPIO_Init+0xdc>)
  8002160:	f000 fd56 	bl	8002c10 <HAL_GPIO_WritePin>
 
-  /*Configure GPIO pins : PC0 PC1 */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
  8002164:	2303      	movs	r3, #3
  8002166:	617b      	str	r3, [r7, #20]
@@ -4800,7 +4842,6 @@ static void MX_GPIO_Init(void)
  800217a:	4811      	ldr	r0, [pc, #68]	@ (80021c0 <MX_GPIO_Init+0xdc>)
  800217c:	f000 fb86 	bl	800288c <HAL_GPIO_Init>
 
-  /*Configure GPIO pins : PA1 PA4 (buttons) */
   GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_4;
  8002180:	2312      	movs	r3, #18
  8002182:	617b      	str	r3, [r7, #20]
@@ -4816,7 +4857,6 @@ static void MX_GPIO_Init(void)
  8002192:	f04f 4090 	mov.w	r0, #1207959552	@ 0x48000000
  8002196:	f000 fb79 	bl	800288c <HAL_GPIO_Init>
 
-  /*Configure GPIO pin : PB0 (button) */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
  800219a:	2301      	movs	r3, #1
  800219c:	617b      	str	r3, [r7, #20]
@@ -4842,8 +4882,10 @@ static void MX_GPIO_Init(void)
  80021c4:	48000400 	.word	0x48000400
 
 080021c8 <__io_putchar>:
-
-/* USER CODE BEGIN 4 */
+ * @brief Retargets printf() output to SWV/ITM (Stimulus Port 0).
+ *
+ * Note: ITM must be enabled in the debugger (CubeIDE: SWV configuration).
+ */
 int __io_putchar(int ch)
 {
  80021c8:	b580      	push	{r7, lr}
@@ -4862,10 +4904,8 @@ int __io_putchar(int ch)
  80021e0:	bd80      	pop	{r7, pc}
 
 080021e2 <Error_Handler>:
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+/* USER CODE END 4 */
+
 void Error_Handler(void)
 {
  80021e2:	b480      	push	{r7}
@@ -18712,10 +18752,10 @@ HAL_StatusTypeDef USB_StopHost(USB_OTG_GlobalTypeDef *USBx)
 	...
 
 08007274 <USBH_MIDI_Init>:
-    USBH_MIDI_SOFProcess
-};
-
-/* USBH_MIDI_Init: called upon device connection for MIDI class */
+ * NOTE:
+ * - If no MIDI Streaming interface is found, the function returns FAIL.
+ *   (In the current implementation the allocated handle is not freed in that path.)
+ */
 static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
 {
  8007274:	b590      	push	{r4, r7, lr}
@@ -18848,11 +18888,16 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
  800733e:	693b      	ldr	r3, [r7, #16]
  8007340:	789b      	ldrb	r3, [r3, #2]
  8007342:	73fb      	strb	r3, [r7, #15]
-    uint8_t ep_type = ep_desc->bmAttributes & 0x03U;  // lower 2 bits indicate type
+    uint8_t ep_type = ep_desc->bmAttributes & 0x03U;  /* lower 2 bits indicate transfer type */
  8007344:	693b      	ldr	r3, [r7, #16]
  8007346:	78db      	ldrb	r3, [r3, #3]
  8007348:	f003 0303 	and.w	r3, r3, #3
  800734c:	73bb      	strb	r3, [r7, #14]
+    /*
+     * Bulk IN endpoint:
+     * - direction bit set (0x80)
+     * - transfer type bulk (0x02)
+     */
     if ((ep_addr & 0x80U) && (ep_type == 0x02U))
  800734e:	f997 300f 	ldrsb.w	r3, [r7, #15]
  8007352:	2b00      	cmp	r3, #0
@@ -18871,6 +18916,11 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
  8007364:	889a      	ldrh	r2, [r3, #4]
  8007366:	69bb      	ldr	r3, [r7, #24]
  8007368:	809a      	strh	r2, [r3, #4]
+       * IMPORTANT:
+       * RxBuffer is sized to USBH_MIDI_MAX_PACKET_SIZE (64).
+       * The code passes InEpSize to USBH_BulkReceiveData() later.
+       * This assumes InEpSize <= USBH_MIDI_MAX_PACKET_SIZE (typical for FS bulk).
+       */
       MIDI_Handle->InPipe = USBH_AllocPipe(phost, MIDI_Handle->InEp);
  800736a:	69bb      	ldr	r3, [r7, #24]
  800736c:	789b      	ldrb	r3, [r3, #2]
@@ -18909,6 +18959,7 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
  80073ae:	4619      	mov	r1, r3
  80073b0:	6878      	ldr	r0, [r7, #4]
  80073b2:	f002 f956 	bl	8009662 <USBH_LL_SetToggle>
+
       printf("USBH_MIDI_Init: Bulk IN endpoint 0x%02X (pipe %d) opened, max packet %d bytes\r\n",
              MIDI_Handle->InEp, MIDI_Handle->InPipe, MIDI_Handle->InEpSize);
  80073b6:	69bb      	ldr	r3, [r7, #24]
@@ -18928,6 +18979,9 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
  80073c8:	f002 fb32 	bl	8009a30 <iprintf>
  80073cc:	e03e      	b.n	800744c <USBH_MIDI_Init+0x1d8>
     }
+    /*
+     * Bulk OUT endpoint (optional, not used by this IN-only API).
+     */
     else if (!(ep_addr & 0x80U) && (ep_type == 0x02U))
  80073ce:	f997 300f 	ldrsb.w	r3, [r7, #15]
  80073d2:	2b00      	cmp	r3, #0
@@ -18984,6 +19038,7 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
  800742e:	4619      	mov	r1, r3
  8007430:	6878      	ldr	r0, [r7, #4]
  8007432:	f002 f916 	bl	8009662 <USBH_LL_SetToggle>
+
       printf("USBH_MIDI_Init: Bulk OUT endpoint 0x%02X (pipe %d) opened, max packet %d bytes\r\n",
              MIDI_Handle->OutEp, MIDI_Handle->OutPipe, MIDI_Handle->OutEpSize);
  8007436:	69bb      	ldr	r3, [r7, #24]
@@ -19064,8 +19119,10 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
  80074b8:	0800ae2c 	.word	0x0800ae2c
 
 080074bc <USBH_MIDI_DeInit>:
-
-/* USBH_MIDI_DeInit: called on device disconnection for cleanup */
+ * @brief USBH MIDI DeInit callback (called on device disconnection).
+ *
+ * Closes allocated pipes and frees the class handle memory.
+ */
 static USBH_StatusTypeDef USBH_MIDI_DeInit(USBH_HandleTypeDef *phost)
 {
  80074bc:	b580      	push	{r7, lr}
@@ -19119,7 +19176,8 @@ static USBH_StatusTypeDef USBH_MIDI_DeInit(USBH_HandleTypeDef *phost)
  8007508:	2200      	movs	r2, #0
  800750a:	701a      	strb	r2, [r3, #0]
     }
-    /* Close and free OUT pipe */
+
+    /* Close and free OUT pipe (if allocated) */
     if (MIDI_Handle->OutPipe)
  800750c:	68fb      	ldr	r3, [r7, #12]
  800750e:	785b      	ldrb	r3, [r3, #1]
@@ -19156,6 +19214,7 @@ static USBH_StatusTypeDef USBH_MIDI_DeInit(USBH_HandleTypeDef *phost)
  8007540:	2200      	movs	r2, #0
  8007542:	705a      	strb	r2, [r3, #1]
     }
+
     /* Free MIDI class handle */
     USBH_free(MIDI_Handle);
  8007544:	68f8      	ldr	r0, [r7, #12]
@@ -19165,6 +19224,7 @@ static USBH_StatusTypeDef USBH_MIDI_DeInit(USBH_HandleTypeDef *phost)
  800754c:	f8d3 337c 	ldr.w	r3, [r3, #892]	@ 0x37c
  8007550:	2200      	movs	r2, #0
  8007552:	61da      	str	r2, [r3, #28]
+
     printf("USBH_MIDI_DeInit: Freed MIDI class handle memory\r\n");
  8007554:	4807      	ldr	r0, [pc, #28]	@ (8007574 <USBH_MIDI_DeInit+0xb8>)
  8007556:	f002 fad3 	bl	8009b00 <puts>
@@ -19186,15 +19246,17 @@ static USBH_StatusTypeDef USBH_MIDI_DeInit(USBH_HandleTypeDef *phost)
  8007578:	0800af04 	.word	0x0800af04
 
 0800757c <USBH_MIDI_ClassRequest>:
-
-/* USBH_MIDI_ClassRequest: no class-specific requests needed for basic MIDI */
+ *
+ * This minimal MIDI driver does not require additional control requests,
+ * so it always returns USBH_OK.
+ */
 static USBH_StatusTypeDef USBH_MIDI_ClassRequest(USBH_HandleTypeDef *phost)
 {
  800757c:	b480      	push	{r7}
  800757e:	b083      	sub	sp, #12
  8007580:	af00      	add	r7, sp, #0
  8007582:	6078      	str	r0, [r7, #4]
-  /* No special control requests; simply return OK */
+  (void)phost;
   return USBH_OK;
  8007584:	2300      	movs	r3, #0
 }
@@ -19206,8 +19268,10 @@ static USBH_StatusTypeDef USBH_MIDI_ClassRequest(USBH_HandleTypeDef *phost)
 	...
 
 08007594 <USBH_MIDI_Process>:
-
-/* USBH_MIDI_Process: polling handler for incoming MIDI data */
+ *     - if URB_ERROR: go to MIDI_ERROR
+ *     - else (BUSY/NOTREADY): keep waiting
+ * - MIDI_ERROR: unrecoverable (no recovery in current code)
+ */
 static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
 {
  8007594:	b580      	push	{r7, lr}
@@ -19230,7 +19294,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  80075ae:	2b00      	cmp	r3, #0
  80075b0:	d101      	bne.n	80075b6 <USBH_MIDI_Process+0x22>
   {
-    return USBH_FAIL;  // Should not happen if class is active
+    return USBH_FAIL;  /* Should not happen if class is active */
  80075b2:	2302      	movs	r3, #2
  80075b4:	e0dd      	b.n	8007772 <USBH_MIDI_Process+0x1de>
   }
@@ -19249,7 +19313,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  80075ce:	e0ca      	b.n	8007766 <USBH_MIDI_Process+0x1d2>
   {
     case MIDI_IDLE:
-      /* Idle: start a new IN transfer */
+      /* Start a new IN transfer */
       printf("USBH_MIDI_Process: State=MIDI_IDLE, initiating IN transfer\r\n");
  80075d0:	486a      	ldr	r0, [pc, #424]	@ (800777c <USBH_MIDI_Process+0x1e8>)
  80075d2:	f002 fa95 	bl	8009b00 <puts>
@@ -19291,7 +19355,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  8007610:	2b01      	cmp	r3, #1
  8007612:	d173      	bne.n	80076fc <USBH_MIDI_Process+0x168>
       {
-        /* Data packet received */
+        /* One USB packet received */
         length = USBH_LL_GetLastXferSize(phost, MIDI_Handle->InPipe);
  8007614:	69fb      	ldr	r3, [r7, #28]
  8007616:	781b      	ldrb	r3, [r3, #0]
@@ -19303,6 +19367,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  8007622:	6979      	ldr	r1, [r7, #20]
  8007624:	4857      	ldr	r0, [pc, #348]	@ (8007784 <USBH_MIDI_Process+0x1f0>)
  8007626:	f002 fa03 	bl	8009a30 <iprintf>
+
         if (length > 0 && length <= USBH_MIDI_MAX_PACKET_SIZE)
  800762a:	697b      	ldr	r3, [r7, #20]
  800762c:	2b00      	cmp	r3, #0
@@ -19311,6 +19376,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  8007632:	2b40      	cmp	r3, #64	@ 0x40
  8007634:	d84a      	bhi.n	80076cc <USBH_MIDI_Process+0x138>
         {
+          /* Split data into 4-byte USB-MIDI event packets and push to FIFO */
           uint32_t i = 0;
  8007636:	2300      	movs	r3, #0
  8007638:	623b      	str	r3, [r7, #32]
@@ -19334,10 +19400,10 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  800765c:	429a      	cmp	r2, r3
  800765e:	d01e      	beq.n	800769e <USBH_MIDI_Process+0x10a>
             {
-              /* FIFO full – cannot add more events */
-              break;  // drop remaining events
+              /* FIFO full: drop remaining events in this packet */
+              break;
             }
-            /* Copy one 4-byte MIDI event into FIFO */
+
             memcpy(&MIDI_Handle->EventFIFO[MIDI_Handle->EventFIFOHead],
  8007660:	69fb      	ldr	r3, [r7, #28]
  8007662:	f8b3 308a 	ldrh.w	r3, [r3, #138]	@ 0x8a
@@ -19373,9 +19439,10 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  8007698:	2b03      	cmp	r3, #3
  800769a:	d8cf      	bhi.n	800763c <USBH_MIDI_Process+0xa8>
  800769c:	e000      	b.n	80076a0 <USBH_MIDI_Process+0x10c>
-              break;  // drop remaining events
+              break;
  800769e:	bf00      	nop
           }
+
           uint32_t eventsAdded = i / 4;
  80076a0:	6a3b      	ldr	r3, [r7, #32]
  80076a2:	089b      	lsrs	r3, r3, #2
@@ -19414,7 +19481,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  80076ce:	2b40      	cmp	r3, #64	@ 0x40
  80076d0:	d906      	bls.n	80076e0 <USBH_MIDI_Process+0x14c>
         {
-          /* Received packet larger than our buffer (should not happen in FS) */
+          /* Safety log: should not happen for FS bulk with 64-byte packets */
           printf("USBH_MIDI_Process: Packet size %lu exceeds max %d, ignoring\r\n",
  80076d2:	2240      	movs	r2, #64	@ 0x40
  80076d4:	6979      	ldr	r1, [r7, #20]
@@ -19425,7 +19492,8 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  80076de:	bf00      	nop
                  (unsigned long)length, USBH_MIDI_MAX_PACKET_SIZE);
         }
-        /* Submit a new read transfer immediately to continue polling */
+
+        /* Immediately submit the next read transfer to keep continuous polling */
         USBH_BulkReceiveData(phost, MIDI_Handle->RxBuffer,
  80076e0:	69fb      	ldr	r3, [r7, #28]
  80076e2:	f103 0109 	add.w	r1, r3, #9
@@ -19436,14 +19504,15 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  80076ee:	6878      	ldr	r0, [r7, #4]
  80076f0:	f001 fc5b 	bl	8008faa <USBH_BulkReceiveData>
                              MIDI_Handle->InEpSize, MIDI_Handle->InPipe);
-        /* Stay in MIDI_TRANSFER state */
+
+        /* Stay in MIDI_TRANSFER */
         status = USBH_OK;
  80076f4:	2300      	movs	r3, #0
  80076f6:	f887 3027 	strb.w	r3, [r7, #39]	@ 0x27
+      else
       {
-        /* URB_BUSY or NOTREADY: no new data yet, keep waiting */
+        /* URB_BUSY / NOTREADY: keep waiting */
         status = USBH_BUSY;
-        // (No log here to avoid excessive output on each poll cycle)
       }
       break;
  80076fa:	e038      	b.n	800776e <USBH_MIDI_Process+0x1da>
@@ -19458,7 +19527,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  8007706:	4619      	mov	r1, r3
  8007708:	4822      	ldr	r0, [pc, #136]	@ (8007794 <USBH_MIDI_Process+0x200>)
  800770a:	f002 f991 	bl	8009a30 <iprintf>
-        USBH_ClrFeature(phost, MIDI_Handle->InEp);  // clear stall on the IN endpoint
+        USBH_ClrFeature(phost, MIDI_Handle->InEp);
  800770e:	69fb      	ldr	r3, [r7, #28]
  8007710:	789b      	ldrb	r3, [r3, #2]
  8007712:	4619      	mov	r1, r3
@@ -19501,7 +19570,7 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  8007756:	e00a      	b.n	800776e <USBH_MIDI_Process+0x1da>
 
     case MIDI_ERROR:
-      /* Error state - no recovery implemented */
+      /* No recovery is implemented in this minimal driver */
       printf("USBH_MIDI_Process: State=MIDI_ERROR, unrecoverable error\r\n");
  8007758:	4810      	ldr	r0, [pc, #64]	@ (800779c <USBH_MIDI_Process+0x208>)
  800775a:	f002 f9d1 	bl	8009b00 <puts>
@@ -19538,15 +19607,17 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  800779c:	0800b11c 	.word	0x0800b11c
 
 080077a0 <USBH_MIDI_SOFProcess>:
-
-/* USBH_MIDI_SOFProcess: not used (included for completeness) */
+ * @brief SOF callback (not used in this driver).
+ *
+ * Included for completeness because USBH_ClassTypeDef includes this hook.
+ */
 static USBH_StatusTypeDef USBH_MIDI_SOFProcess(USBH_HandleTypeDef *phost)
 {
  80077a0:	b480      	push	{r7}
  80077a2:	b083      	sub	sp, #12
  80077a4:	af00      	add	r7, sp, #0
  80077a6:	6078      	str	r0, [r7, #4]
-  /* No periodic SOF handling needed for this class */
+  (void)phost;
   return USBH_OK;
  80077a8:	2300      	movs	r3, #0
 }
@@ -19557,8 +19628,10 @@ static USBH_StatusTypeDef USBH_MIDI_SOFProcess(USBH_HandleTypeDef *phost)
  80077b4:	4770      	bx	lr
 
 080077b6 <USBH_MIDI_GetEvent>:
-
-/* Public API function to get a MIDI event from the FIFO */
+ * @brief Public API: pop one 4-byte event from the FIFO.
+ *
+ * Returns USBH_FAIL if FIFO is empty or class data is not initialized.
+ */
 USBH_StatusTypeDef USBH_MIDI_GetEvent(USBH_HandleTypeDef *phost, uint8_t *event_buf)
 {
  80077b6:	b480      	push	{r7}
@@ -19576,11 +19649,12 @@ USBH_StatusTypeDef USBH_MIDI_GetEvent(USBH_HandleTypeDef *phost, uint8_t *event_
  80077cc:	2b00      	cmp	r3, #0
  80077ce:	d101      	bne.n	80077d4 <USBH_MIDI_GetEvent+0x1e>
   {
-    return USBH_FAIL;  // Class not initialized or device not connected
+    return USBH_FAIL;  /* Class not initialized / device not ready */
  80077d0:	2302      	movs	r3, #2
  80077d2:	e030      	b.n	8007836 <USBH_MIDI_GetEvent+0x80>
   }
-  /* Check FIFO */
+
+  /* FIFO empty */
   if (MIDI_Handle->EventFIFOHead == MIDI_Handle->EventFIFOTail)
  80077d4:	68bb      	ldr	r3, [r7, #8]
  80077d6:	f8b3 208a 	ldrh.w	r2, [r3, #138]	@ 0x8a
@@ -19589,11 +19663,11 @@ USBH_StatusTypeDef USBH_MIDI_GetEvent(USBH_HandleTypeDef *phost, uint8_t *event_
  80077e0:	429a      	cmp	r2, r3
  80077e2:	d101      	bne.n	80077e8 <USBH_MIDI_GetEvent+0x32>
   {
-    // FIFO empty
     return USBH_FAIL;
  80077e4:	2302      	movs	r3, #2
  80077e6:	e026      	b.n	8007836 <USBH_MIDI_GetEvent+0x80>
   }
+
   /* Copy one 4-byte event from FIFO to user buffer */
   for (uint8_t j = 0; j < 4; j++)
  80077e8:	2300      	movs	r3, #0
@@ -19621,7 +19695,8 @@ USBH_StatusTypeDef USBH_MIDI_GetEvent(USBH_HandleTypeDef *phost, uint8_t *event_
  8007812:	2b03      	cmp	r3, #3
  8007814:	d9eb      	bls.n	80077ee <USBH_MIDI_GetEvent+0x38>
   }
-  /* Advance tail index by 4 (one event) */
+
+  /* Advance tail by 4 (one event) */
   MIDI_Handle->EventFIFOTail = (MIDI_Handle->EventFIFOTail + 4) % USBH_MIDI_EVENT_FIFO_SIZE;
  8007816:	68bb      	ldr	r3, [r7, #8]
  8007818:	f8b3 308c 	ldrh.w	r3, [r3, #140]	@ 0x8c

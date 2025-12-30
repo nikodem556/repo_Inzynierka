@@ -1,7 +1,17 @@
 #include "songs.h"
-#include <stdint.h>
 
-/* Note length icon indices (0=whole,1=half,2=quarter,3=eighth,4=sixteenth) */
+/*
+ * songs.c
+ *
+ * This module provides a small registry of built-in songs for the lesson mode.
+ * Each song is defined as an array of SongStep items. A step can require up to
+ * 3 notes (NoteEntry), and each note carries an LCD icon index describing the
+ * note duration (whole/half/quarter/etc.).
+ *
+ * NOTE: This file contains only constant data definitions (no runtime logic).
+ */
+
+/* Note length icon indices (match LCD CGRAM slots configured in main.c) */
 #define LEN_WHOLE      0
 #define LEN_HALF       1
 #define LEN_QUARTER    2

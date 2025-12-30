@@ -8,21 +8,34 @@
 #include "songs.h"
 #include "chords.h"
 
-// Application state definitions for the menu/lesson state machine
+/*
+ * app.h / app.c
+ *
+ * This module implements the top-level application state machine:
+ * - Welcome screen
+ * - Main menu
+ * - Lists (songs / chord packs)
+ * - Legend screen (custom LCD symbols)
+ * - Lesson runtime (song lesson or chord exercise)
+ *
+ * The UI is controlled via three buttons: RESET, NEXT, OK.
+ */
+
+/* Application state definitions for the menu/lesson state machine */
 typedef enum {
-    APP_STATE_WELCOME = 0,    // Welcome screen (startup)
-    APP_STATE_MENU_MAIN,      // Main menu
-    APP_STATE_MENU_SONGS,     // Song selection list
-    APP_STATE_MENU_CHORDPACKS,// Chord pack selection list
-    APP_STATE_VIEW_LEGEND,    // Note symbols legend screen
-    APP_STATE_LESSON_SONG,    // In a song lesson
-    APP_STATE_LESSON_CHORD    // In a chord lesson
+    APP_STATE_WELCOME = 0,     /* Welcome screen shown on startup */
+    APP_STATE_MENU_MAIN,       /* Main menu (3 entries) */
+    APP_STATE_MENU_SONGS,      /* Song selection list */
+    APP_STATE_MENU_CHORDPACKS, /* Chord pack selection list */
+    APP_STATE_VIEW_LEGEND,     /* Note symbols legend screen */
+    APP_STATE_LESSON_SONG,     /* Active song lesson */
+    APP_STATE_LESSON_CHORD     /* Active chord exercise */
 } AppState;
 
-// Initialize the application state machine and hardware
+/* Initialize the application state machine (must be called once at startup). */
 void App_Init(void);
 
-// Process inputs and update the state machine (to be called in main loop)
+/* Process button inputs and update the state machine (call periodically in main loop). */
 void App_Update(void);
 
-#endif // APP_H
+#endif /* APP_H */
