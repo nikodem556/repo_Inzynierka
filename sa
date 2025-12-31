@@ -1,0 +1,161 @@
+[33mcommit d05d739e6b9ad783f36d776cc38181323b170734[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Tue Dec 30 20:17:27 2025 +0100
+
+    Written 3 pages about chosen environments and tools in order to complete the project.
+
+[33mcommit 84da646342b9c65eaedd3a736d1b9f2bde3b2a04[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Tue Dec 30 01:57:44 2025 +0100
+
+    Added early structure of chapter 5, which describes implementing work in practice. Also I added some new comments to SN_Keyboard_assistant and im not sure if they are on the repo already so, I also updated that.
+
+[33mcommit d28394e786cf4489d9295fee479e4faf5963265c[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Mon Dec 29 22:37:24 2025 +0100
+
+    Written 5 new pages, CH.4 USB-MIDI is done. Need to start writing on the practical part!
+
+[33mcommit c5f2a349364e2e76d6c078e304f0f5b49bf931a8[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Mon Dec 29 01:19:10 2025 +0100
+
+    tbh dont know what changed but just to be sure lol
+
+[33mcommit 943f3b8ee3f3ea29b82ca1cd1fce8ee98cec765c[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Mon Dec 29 01:17:46 2025 +0100
+
+    Written 5 more pages. Chapter about USB standard is done. Still need to write about USB-MIDI and work made in practice.
+
+[33mcommit 6dc114af628796a11607371872b0a98b40a02837[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Sun Dec 28 20:06:27 2025 +0100
+
+    Written new 5.5 pages about USB standard.
+
+[33mcommit 482778d45788905a28c6d84c706e81bd183cf232[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Sun Dec 28 01:22:28 2025 +0100
+
+    Added introduction to the bachelros work, also made a schematic of prototype.
+
+[33mcommit be988b5e91fa4af7712f93617ea264cdcfd140d9[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Thu Dec 25 00:30:33 2025 +0100
+
+    It turned out that my bachelor's essay was only saved on remote agh sharepoint. Copy in this repo was just basci template. I have brought back correct version.
+
+[33mcommit 497396afeffcff7f820c4afdd5542e1371637f6e[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Thu Dec 25 00:14:35 2025 +0100
+
+    Added LED feedback function and summary. I think its done for now, and there will no furthers feature until finishing writing.
+
+[33mcommit 53269c5e594a953951dc5b81374ebaa185524232[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Wed Dec 24 22:14:08 2025 +0100
+
+    Added new UI - user can now learn chords, songs, and KeyGuide has a menu. As for now removed function of showing stats at the end and also removed feedback leds. Need to add them back in new iteration.
+
+[33mcommit a22bceaeb4a21039ec9951b6272289c63705d3bf[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Sun Dec 21 23:47:01 2025 +0100
+
+    Added new feature: LCD display lenght of note to be played, also changed notes notation to English, so we have bmol and #.
+
+[33mcommit 646526460ca19cd298472ac4087a5822503629fb[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Sun Dec 21 23:39:19 2025 +0100
+
+    Started writing in new template, already modified previous ten pages to the new template. First two chapters are done, now need to start writing about software.
+
+[33mcommit 2daadd83575e403e7d45174219df36cabdb0cb14[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Sat Dec 20 19:41:28 2025 +0100
+
+    Replace LCD for a new with i2c communication. Now the project is working fully. In next step need to add better song to learn.
+
+[33mcommit 628486bcd5d8a1036ac4a8680bf0df2fcf34832b[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Sat Dec 13 15:42:58 2025 +0100
+
+    Added new type of notes presentation and how lesson is working - by LCD display, feedback LEDs and lesson reset button. Everything works except lcd, which seems to be just broken piece of electronics.
+
+[33mcommit 1a001ab666890b07ee63f941c2b052ccb421a447[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Fri Dec 5 01:39:15 2025 +0100
+
+    Added diode response to the system. As for now it works as playing four basics notes, that you need to play to pass the lesson
+
+[33mcommit 4ecc9f48fe08f5574a9bb6678169f933e08bcb17[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Fri Dec 5 00:48:34 2025 +0100
+
+    Added new files notes which converts notes written in human-readable form to MIDI and the other way around. Also added new files that lesson in which the lesson module will be implemented
+
+[33mcommit ac2e4f002ff40f32342c52cfc02888295ae61b01[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Thu Dec 4 13:50:46 2025 +0100
+
+    Now program can read the notes from the keyboard and print it to SWV debug console. Need to add diodes and make our code react to it
+
+[33mcommit a180e6adede2d42142103181b75044d060a57afd[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Wed Dec 3 14:35:52 2025 +0100
+
+    Code can sense if the device is connected or not. But it can't read data from it yet, need to work on solution
+
+[33mcommit 93d5ae1fcce0dd4ec35e57770dd79914bd6fd6b8[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Wed Dec 3 13:56:24 2025 +0100
+
+    Added files - previous commit only deleted earlier
+
+[33mcommit eda34092cc07273391f07bf2470ed0e85bfa80e3[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Wed Dec 3 13:55:19 2025 +0100
+
+    Change the project strcuture to be able to export into STM32 board
+
+[33mcommit 6232cc603836a6b0a0f22c0a8d2b73065eb820da[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Wed Dec 3 00:14:50 2025 +0100
+
+    Added first prototype of code thats suppose to work. Earlier attempts were unsuccessful
+
+[33mcommit 1774752a430aab2b5f704da410dff73f0ad4c81a[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Tue May 20 00:46:44 2025 +0200
+
+    Skonczono rozdzial 2 o rozwiazaniach rynkowych, dodano notke o 3 typie rozwiazan czyli keyboardach LK
+
+[33mcommit 9791905f9b9341dfac6864b3112c2915181f7022[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Mon May 19 00:26:06 2025 +0200
+
+    Prawie skonczono opisywac rozwiazania rynkowe, zostalo opisac KLK
+
+[33mcommit 86aa48a3b280dde061eabc914154171bba3dd42c[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Thu Apr 24 12:42:35 2025 +0200
+
+    Dodano szablon pracy dyplomowej, a takze zalozenia projektowe i utworzono dla nich specjalny folder. Dokonczono MIDI w dokumenice Inzyniera
+
+[33mcommit 5d4060be5aa6d1e53970b41780708808fbd82740[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Wed Apr 23 23:26:41 2025 +0200
+
+    Zaczęto pisanie literatury. Prawie skończono etap pisania o MIDI
+
+[33mcommit 8bf61070ec3124832311fb8ed6ab3583525c2bf0[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Wed Apr 23 15:03:58 2025 +0200
+
+    Usunięto jeden plik z dokumentacją dot. mikserow SQ, dodano plik info.txt, który wyjasnia co jest w folderze
+
+[33mcommit 22a14b6ec16e5a6e99af9a17e7cc65ee6a43b027[m
+Author: Nikodem <nikodemsz18@gmail.com>
+Date:   Wed Apr 23 14:44:12 2025 +0200
+
+    Inicjalizacja repo. Dodano dwie dokumentacje MIDI
