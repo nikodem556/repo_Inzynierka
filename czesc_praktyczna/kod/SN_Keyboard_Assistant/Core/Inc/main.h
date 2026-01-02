@@ -67,10 +67,16 @@ void Error_Handler(void);
 #define RED_LED_GPIO_Port       GPIOC
 #define RED_LED_Pin             GPIO_PIN_1   /* e.g. PC1 */
 
-/* Reset button pin (default active-low with pull-up). */
-#define RESET_BTN_GPIO_Port     GPIOB
-#define RESET_BTN_Pin           GPIO_PIN_0   /* e.g. PB0 */
-#define RESET_BTN_ACTIVE_LEVEL  0            /* 0 = active-low, 1 = active-high */
+/* Buttons pins (default active-low with pull-up). */
+#define BTN_RESET_PORT     		GPIOB
+#define BTN_RESET_PIN           GPIO_PIN_0   /* e.g. PB0 */
+
+#define BTN_NEXT_PORT   GPIOA
+#define BTN_NEXT_PIN    GPIO_PIN_1			 /* e.g. PA1 */
+
+#define BTN_OK_PORT     GPIOA
+#define BTN_OK_PIN      GPIO_PIN_4			 /* e.g. PA4 */
+
 
 /* Compile-time guards: fail early if any required mapping is missing. */
 #ifndef GREEN_LED_GPIO_Port
@@ -85,16 +91,24 @@ void Error_Handler(void);
 #ifndef RED_LED_Pin
 #error "RED_LED_Pin not defined"
 #endif
-#ifndef RESET_BTN_GPIO_Port
-#error "RESET_BTN_GPIO_Port not defined"
+#ifndef BTN_RESET_PORT
+#error "BTN_RESET_PORT_Port not defined"
 #endif
-#ifndef RESET_BTN_Pin
-#error "RESET_BTN_Pin not defined"
+#ifndef BTN_RESET_PIN
+#error "BTN_RESET_PIN not defined"
 #endif
-#ifndef RESET_BTN_ACTIVE_LEVEL
-#error "RESET_BTN_ACTIVE_LEVEL not defined"
+#ifndef BTN_NEXT_PORT
+#error "BTN_NEXT_PORT not defined"
 #endif
-
+#ifndef BTN_NEXT_PIN
+#error "BTN_NEXT_PIN not defined"
+#endif
+#ifndef BTN_OK_PORT
+#error "BTN_OK_PORT not defined"
+#endif
+#ifndef BTN_OK_PIN
+#error "BTN_OK_PIN not defined"
+#endif
 
 /* USER CODE END Private defines */
 

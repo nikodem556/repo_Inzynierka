@@ -7,45 +7,45 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         0000a8c8  08000190  08000190  00001190  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       000007b0  0800aa58  0800aa58  0000ba58  2**2
+  2 .rodata       000007ac  0800aa58  0800aa58  0000ba58  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.extab    00000000  0800b208  0800b208  0000d204  2**0
+  3 .ARM.extab    00000000  0800b204  0800b204  0000d26c  2**0
                   CONTENTS, READONLY
-  4 .ARM          00000008  0800b208  0800b208  0000c208  2**2
+  4 .ARM          00000008  0800b204  0800b204  0000c204  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  5 .preinit_array 00000000  0800b210  0800b210  0000d204  2**0
+  5 .preinit_array 00000000  0800b20c  0800b20c  0000d26c  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  6 .init_array   00000004  0800b210  0800b210  0000c210  2**2
+  6 .init_array   00000004  0800b20c  0800b20c  0000c20c  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  7 .fini_array   00000004  0800b214  0800b214  0000c214  2**2
+  7 .fini_array   00000004  0800b210  0800b210  0000c210  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  8 .data         00000204  20000000  0800b218  0000d000  2**2
+  8 .data         0000026c  20000000  0800b214  0000d000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  9 .bss          00000960  20000204  0800b41c  0000d204  2**2
+  9 .bss          00000960  2000026c  0800b480  0000d26c  2**2
                   ALLOC
- 10 ._user_heap_stack 00000604  20000b64  0800b41c  0000db64  2**0
+ 10 ._user_heap_stack 00000604  20000bcc  0800b480  0000dbcc  2**0
                   ALLOC
- 11 .ARM.attributes 00000030  00000000  00000000  0000d204  2**0
+ 11 .ARM.attributes 00000030  00000000  00000000  0000d26c  2**0
                   CONTENTS, READONLY
- 12 .debug_info   00017e88  00000000  00000000  0000d234  2**0
+ 12 .debug_info   00017ea8  00000000  00000000  0000d29c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 00004571  00000000  00000000  000250bc  2**0
+ 13 .debug_abbrev 00004571  00000000  00000000  00025144  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 000012c0  00000000  00000000  00029630  2**3
+ 14 .debug_aranges 000012c0  00000000  00000000  000296b8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_rnglists 00000e36  00000000  00000000  0002a8f0  2**0
+ 15 .debug_rnglists 00000e36  00000000  00000000  0002a978  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  00029c2d  00000000  00000000  0002b726  2**0
+ 16 .debug_macro  00029c36  00000000  00000000  0002b7ae  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00018db7  00000000  00000000  00055353  2**0
+ 17 .debug_line   00018dc7  00000000  00000000  000553e4  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    000ef33c  00000000  00000000  0006e10a  2**0
+ 18 .debug_str    000ef2ff  00000000  00000000  0006e1ab  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  0015d446  2**0
+ 19 .comment      00000043  00000000  00000000  0015d4aa  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000541c  00000000  00000000  0015d48c  2**2
+ 20 .debug_frame  0000541c  00000000  00000000  0015d4f0  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 00000060  00000000  00000000  001628a8  2**0
+ 21 .debug_line_str 00000060  00000000  00000000  0016290c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -62,7 +62,7 @@ Disassembly of section .text:
  80001a2:	2301      	movs	r3, #1
  80001a4:	7023      	strb	r3, [r4, #0]
  80001a6:	bd10      	pop	{r4, pc}
- 80001a8:	20000204 	.word	0x20000204
+ 80001a8:	2000026c 	.word	0x2000026c
  80001ac:	00000000 	.word	0x00000000
  80001b0:	0800aa40 	.word	0x0800aa40
 
@@ -75,7 +75,7 @@ Disassembly of section .text:
  80001be:	f3af 8000 	nop.w
  80001c2:	bd08      	pop	{r3, pc}
  80001c4:	00000000 	.word	0x00000000
- 80001c8:	20000208 	.word	0x20000208
+ 80001c8:	20000270 	.word	0x20000270
  80001cc:	0800aa40 	.word	0x0800aa40
 
 080001d0 <memchr>:
@@ -457,7 +457,7 @@ static void LCD_ClearRow(uint8_t row)
  80005be:	46bd      	mov	sp, r7
  80005c0:	bd80      	pop	{r7, pc}
  80005c2:	bf00      	nop
- 80005c4:	200002c8 	.word	0x200002c8
+ 80005c4:	20000330 	.word	0x20000330
  80005c8:	0800aa58 	.word	0x0800aa58
 
 080005cc <LCD_WriteCustom>:
@@ -482,7 +482,7 @@ static void LCD_WriteCustom(uint8_t slot)
  80005e2:	3708      	adds	r7, #8
  80005e4:	46bd      	mov	sp, r7
  80005e6:	bd80      	pop	{r7, pc}
- 80005e8:	200002c8 	.word	0x200002c8
+ 80005e8:	20000330 	.word	0x20000330
 
 080005ec <App_Init>:
 
@@ -505,7 +505,7 @@ void App_Init(void)
  80005fe:	bf00      	nop
  8000600:	bd80      	pop	{r7, pc}
  8000602:	bf00      	nop
- 8000604:	20000220 	.word	0x20000220
+ 8000604:	20000288 	.word	0x20000288
 
 08000608 <App_Update>:
 
@@ -950,15 +950,15 @@ void App_Update(void)
  8000876:	bf00      	nop
  8000878:	bd80      	pop	{r7, pc}
  800087a:	bf00      	nop
- 800087c:	20000220 	.word	0x20000220
- 8000880:	20000221 	.word	0x20000221
- 8000884:	20000222 	.word	0x20000222
- 8000888:	20000223 	.word	0x20000223
- 800088c:	20000164 	.word	0x20000164
+ 800087c:	20000288 	.word	0x20000288
+ 8000880:	20000289 	.word	0x20000289
+ 8000884:	2000028a 	.word	0x2000028a
+ 8000888:	2000028b 	.word	0x2000028b
+ 800088c:	200001c0 	.word	0x200001c0
  8000890:	200000f0 	.word	0x200000f0
  8000894:	55555556 	.word	0x55555556
- 8000898:	0800b190 	.word	0x0800b190
- 800089c:	0800b156 	.word	0x0800b156
+ 8000898:	0800b18c 	.word	0x0800b18c
+ 800089c:	0800b152 	.word	0x0800b152
 
 080008a0 <DisplayWelcomeScreen>:
 
@@ -1000,7 +1000,7 @@ static void DisplayWelcomeScreen(void)
  80008da:	bf00      	nop
  80008dc:	bd80      	pop	{r7, pc}
  80008de:	bf00      	nop
- 80008e0:	200002c8 	.word	0x200002c8
+ 80008e0:	20000330 	.word	0x20000330
  80008e4:	0800aa6c 	.word	0x0800aa6c
  80008e8:	0800aa78 	.word	0x0800aa78
 
@@ -1027,7 +1027,7 @@ static void DisplayMainMenu(void)
  8000908:	f000 fb22 	bl	8000f50 <GroveLCD_SetCursor>
 
     /* Print the currently selected main-menu entry */
-    if (mainMenuIndex == 0) GroveLCD_Print(&lcd, "Notes symbol");
+    if (mainMenuIndex == 0) GroveLCD_Print(&lcd, "Icons");
  800090c:	4b15      	ldr	r3, [pc, #84]	@ (8000964 <DisplayMainMenu+0x78>)
  800090e:	781b      	ldrb	r3, [r3, #0]
  8000910:	2b00      	cmp	r3, #0
@@ -1045,7 +1045,7 @@ static void DisplayMainMenu(void)
  8000928:	480d      	ldr	r0, [pc, #52]	@ (8000960 <DisplayMainMenu+0x74>)
  800092a:	f000 fb44 	bl	8000fb6 <GroveLCD_Print>
  800092e:	e003      	b.n	8000938 <DisplayMainMenu+0x4c>
-    else GroveLCD_Print(&lcd, "Basic chords");
+    else GroveLCD_Print(&lcd, "Chords");
  8000930:	490f      	ldr	r1, [pc, #60]	@ (8000970 <DisplayMainMenu+0x84>)
  8000932:	480b      	ldr	r0, [pc, #44]	@ (8000960 <DisplayMainMenu+0x74>)
  8000934:	f000 fb3f 	bl	8000fb6 <GroveLCD_Print>
@@ -1074,13 +1074,13 @@ static void DisplayMainMenu(void)
 }
  800095c:	bf00      	nop
  800095e:	bd80      	pop	{r7, pc}
- 8000960:	200002c8 	.word	0x200002c8
- 8000964:	20000221 	.word	0x20000221
+ 8000960:	20000330 	.word	0x20000330
+ 8000964:	20000289 	.word	0x20000289
  8000968:	0800aa84 	.word	0x0800aa84
- 800096c:	0800aa94 	.word	0x0800aa94
- 8000970:	0800aa9c 	.word	0x0800aa9c
- 8000974:	0800aaac 	.word	0x0800aaac
- 8000978:	0800aab4 	.word	0x0800aab4
+ 800096c:	0800aa8c 	.word	0x0800aa8c
+ 8000970:	0800aa94 	.word	0x0800aa94
+ 8000974:	0800aa9c 	.word	0x0800aa9c
+ 8000978:	0800aaa4 	.word	0x0800aaa4
 
 0800097c <DisplayNotesLegend>:
 
@@ -1140,17 +1140,17 @@ static void DisplayNotesLegend(void)
     LCD_WriteCustom(4);
  80009da:	2004      	movs	r0, #4
  80009dc:	f7ff fdf6 	bl	80005cc <LCD_WriteCustom>
-    GroveLCD_Print(&lcd, "  RESET=Back");
+    GroveLCD_Print(&lcd, " RESET=Back");
  80009e0:	4905      	ldr	r1, [pc, #20]	@ (80009f8 <DisplayNotesLegend+0x7c>)
  80009e2:	4802      	ldr	r0, [pc, #8]	@ (80009ec <DisplayNotesLegend+0x70>)
  80009e4:	f000 fae7 	bl	8000fb6 <GroveLCD_Print>
 }
  80009e8:	bf00      	nop
  80009ea:	bd80      	pop	{r7, pc}
- 80009ec:	200002c8 	.word	0x200002c8
- 80009f0:	0800aac8 	.word	0x0800aac8
- 80009f4:	0800aacc 	.word	0x0800aacc
- 80009f8:	0800aad0 	.word	0x0800aad0
+ 80009ec:	20000330 	.word	0x20000330
+ 80009f0:	0800aab8 	.word	0x0800aab8
+ 80009f4:	0800aabc 	.word	0x0800aabc
+ 80009f8:	0800aac0 	.word	0x0800aac0
 
 080009fc <DisplaySongsList>:
 
@@ -1219,13 +1219,13 @@ static void DisplaySongsList(void)
 }
  8000a64:	bf00      	nop
  8000a66:	bd80      	pop	{r7, pc}
- 8000a68:	200002c8 	.word	0x200002c8
- 8000a6c:	0800aa94 	.word	0x0800aa94
- 8000a70:	0800b190 	.word	0x0800b190
- 8000a74:	0800aae0 	.word	0x0800aae0
- 8000a78:	20000222 	.word	0x20000222
- 8000a7c:	20000164 	.word	0x20000164
- 8000a80:	0800aae4 	.word	0x0800aae4
+ 8000a68:	20000330 	.word	0x20000330
+ 8000a6c:	0800aa8c 	.word	0x0800aa8c
+ 8000a70:	0800b18c 	.word	0x0800b18c
+ 8000a74:	0800aacc 	.word	0x0800aacc
+ 8000a78:	2000028a 	.word	0x2000028a
+ 8000a7c:	200001c0 	.word	0x200001c0
+ 8000a80:	0800aad0 	.word	0x0800aad0
 
 08000a84 <DisplayChordPacksList>:
 
@@ -1293,13 +1293,13 @@ static void DisplayChordPacksList(void)
 }
  8000aec:	bf00      	nop
  8000aee:	bd80      	pop	{r7, pc}
- 8000af0:	200002c8 	.word	0x200002c8
- 8000af4:	0800aaf0 	.word	0x0800aaf0
- 8000af8:	0800b156 	.word	0x0800b156
- 8000afc:	0800aae0 	.word	0x0800aae0
- 8000b00:	20000223 	.word	0x20000223
+ 8000af0:	20000330 	.word	0x20000330
+ 8000af4:	0800aadc 	.word	0x0800aadc
+ 8000af8:	0800b152 	.word	0x0800b152
+ 8000afc:	0800aacc 	.word	0x0800aacc
+ 8000b00:	2000028b 	.word	0x2000028b
  8000b04:	200000f0 	.word	0x200000f0
- 8000b08:	0800aafc 	.word	0x0800aafc
+ 8000b08:	0800aae8 	.word	0x0800aae8
 
 08000b0c <read_raw>:
  * Returns:
@@ -1514,7 +1514,7 @@ void Button_Init(void)
  8000c7a:	bd80      	pop	{r7, pc}
  8000c7c:	40021000 	.word	0x40021000
  8000c80:	48000400 	.word	0x48000400
- 8000c84:	20000224 	.word	0x20000224
+ 8000c84:	2000028c 	.word	0x2000028c
 
 08000c88 <Button_Update>:
 
@@ -1667,7 +1667,7 @@ void Button_Update(void)
  8000d6e:	3710      	adds	r7, #16
  8000d70:	46bd      	mov	sp, r7
  8000d72:	bd80      	pop	{r7, pc}
- 8000d74:	20000224 	.word	0x20000224
+ 8000d74:	2000028c 	.word	0x2000028c
 
 08000d78 <Button_WasPressed>:
 
@@ -1721,7 +1721,7 @@ bool Button_WasPressed(ButtonType button)
  8000dc0:	46bd      	mov	sp, r7
  8000dc2:	f85d 7b04 	ldr.w	r7, [sp], #4
  8000dc6:	4770      	bx	lr
- 8000dc8:	20000224 	.word	0x20000224
+ 8000dc8:	2000028c 	.word	0x2000028c
 
 08000dcc <lcd_hal_addr>:
 
@@ -2249,8 +2249,8 @@ static void LCD_ClearRow(uint8_t row)
  80010d2:	46bd      	mov	sp, r7
  80010d4:	bd80      	pop	{r7, pc}
  80010d6:	bf00      	nop
- 80010d8:	200002c8 	.word	0x200002c8
- 80010dc:	0800ab58 	.word	0x0800ab58
+ 80010d8:	20000330 	.word	0x20000330
+ 80010dc:	0800ab44 	.word	0x0800ab44
 
 080010e0 <LCD_WriteCustom>:
 
@@ -2272,7 +2272,7 @@ static void LCD_WriteCustom(uint8_t slot)
  80010f6:	3708      	adds	r7, #8
  80010f8:	46bd      	mov	sp, r7
  80010fa:	bd80      	pop	{r7, pc}
- 80010fc:	200002c8 	.word	0x200002c8
+ 80010fc:	20000330 	.word	0x20000330
 
 08001100 <MidiToOctaveChar>:
 /*
@@ -2350,7 +2350,7 @@ static void ResetStepHit(void)
  800116c:	46bd      	mov	sp, r7
  800116e:	f85d 7b04 	ldr.w	r7, [sp], #4
  8001172:	4770      	bx	lr
- 8001174:	20000254 	.word	0x20000254
+ 8001174:	200002bc 	.word	0x200002bc
 
 08001178 <GetCurrentSlotCount>:
 
@@ -2408,9 +2408,9 @@ static uint8_t GetCurrentSlotCount(void)
  80011c8:	f85d 7b04 	ldr.w	r7, [sp], #4
  80011cc:	4770      	bx	lr
  80011ce:	bf00      	nop
- 80011d0:	20000248 	.word	0x20000248
- 80011d4:	20000250 	.word	0x20000250
- 80011d8:	2000024c 	.word	0x2000024c
+ 80011d0:	200002b0 	.word	0x200002b0
+ 80011d4:	200002b8 	.word	0x200002b8
+ 80011d8:	200002b4 	.word	0x200002b4
 
 080011dc <CountMissingSlots>:
 
@@ -2465,7 +2465,7 @@ static uint8_t CountMissingSlots(void)
  8001226:	3708      	adds	r7, #8
  8001228:	46bd      	mov	sp, r7
  800122a:	bd80      	pop	{r7, pc}
- 800122c:	20000254 	.word	0x20000254
+ 800122c:	200002bc 	.word	0x200002bc
 
 08001230 <AddMissingSlotsAsCorrect>:
 /*
@@ -2536,9 +2536,9 @@ static void AddMissingSlotsAsCorrect(void)
  800128e:	3708      	adds	r7, #8
  8001290:	46bd      	mov	sp, r7
  8001292:	bd80      	pop	{r7, pc}
- 8001294:	20000258 	.word	0x20000258
- 8001298:	20000260 	.word	0x20000260
- 800129c:	20000254 	.word	0x20000254
+ 8001294:	200002c0 	.word	0x200002c0
+ 8001298:	200002c8 	.word	0x200002c8
+ 800129c:	200002bc 	.word	0x200002bc
 
 080012a0 <IsStepComplete>:
 
@@ -2595,7 +2595,7 @@ static bool IsStepComplete(void)
  80012ee:	3708      	adds	r7, #8
  80012f0:	46bd      	mov	sp, r7
  80012f2:	bd80      	pop	{r7, pc}
- 80012f4:	20000254 	.word	0x20000254
+ 80012f4:	200002bc 	.word	0x200002bc
 
 080012f8 <AdvanceOrSummary>:
 /*
@@ -2674,10 +2674,10 @@ static void AdvanceOrSummary(void)
  8001366:	bf00      	nop
  8001368:	bd80      	pop	{r7, pc}
  800136a:	bf00      	nop
- 800136c:	20000250 	.word	0x20000250
- 8001370:	20000251 	.word	0x20000251
- 8001374:	20000248 	.word	0x20000248
- 8001378:	2000024c 	.word	0x2000024c
+ 800136c:	200002b8 	.word	0x200002b8
+ 8001370:	200002b9 	.word	0x200002b9
+ 8001374:	200002b0 	.word	0x200002b0
+ 8001378:	200002b4 	.word	0x200002b4
 
 0800137c <LedBlinkGreen>:
 
@@ -2707,8 +2707,8 @@ static void LedBlinkGreen(void)
  800139c:	bd80      	pop	{r7, pc}
  800139e:	bf00      	nop
  80013a0:	48000800 	.word	0x48000800
- 80013a4:	20000264 	.word	0x20000264
- 80013a8:	20000268 	.word	0x20000268
+ 80013a4:	200002cc 	.word	0x200002cc
+ 80013a8:	200002d0 	.word	0x200002d0
 
 080013ac <LedBlinkRed>:
 
@@ -2736,8 +2736,8 @@ static void LedBlinkRed(void)
  80013cc:	bd80      	pop	{r7, pc}
  80013ce:	bf00      	nop
  80013d0:	48000800 	.word	0x48000800
- 80013d4:	20000265 	.word	0x20000265
- 80013d8:	2000026c 	.word	0x2000026c
+ 80013d4:	200002cd 	.word	0x200002cd
+ 80013d8:	200002d4 	.word	0x200002d4
 
 080013dc <NoteToPitchClass>:
 /*
@@ -2981,20 +2981,20 @@ void Lesson_StartSong(Song *song)
  800156e:	3708      	adds	r7, #8
  8001570:	46bd      	mov	sp, r7
  8001572:	bd80      	pop	{r7, pc}
- 8001574:	20000248 	.word	0x20000248
- 8001578:	2000024c 	.word	0x2000024c
- 800157c:	20000250 	.word	0x20000250
- 8001580:	20000251 	.word	0x20000251
- 8001584:	20000252 	.word	0x20000252
- 8001588:	20000258 	.word	0x20000258
- 800158c:	2000025c 	.word	0x2000025c
- 8001590:	20000260 	.word	0x20000260
- 8001594:	20000253 	.word	0x20000253
+ 8001574:	200002b0 	.word	0x200002b0
+ 8001578:	200002b4 	.word	0x200002b4
+ 800157c:	200002b8 	.word	0x200002b8
+ 8001580:	200002b9 	.word	0x200002b9
+ 8001584:	200002ba 	.word	0x200002ba
+ 8001588:	200002c0 	.word	0x200002c0
+ 800158c:	200002c4 	.word	0x200002c4
+ 8001590:	200002c8 	.word	0x200002c8
+ 8001594:	200002bb 	.word	0x200002bb
  8001598:	48000800 	.word	0x48000800
- 800159c:	20000264 	.word	0x20000264
- 80015a0:	20000265 	.word	0x20000265
- 80015a4:	20000268 	.word	0x20000268
- 80015a8:	2000026c 	.word	0x2000026c
+ 800159c:	200002cc 	.word	0x200002cc
+ 80015a0:	200002cd 	.word	0x200002cd
+ 80015a4:	200002d0 	.word	0x200002d0
+ 80015a8:	200002d4 	.word	0x200002d4
 
 080015ac <Lesson_StartChordExercise>:
 
@@ -3107,20 +3107,20 @@ void Lesson_StartChordExercise(ChordPack *pack)
  8001652:	3708      	adds	r7, #8
  8001654:	46bd      	mov	sp, r7
  8001656:	bd80      	pop	{r7, pc}
- 8001658:	2000024c 	.word	0x2000024c
- 800165c:	20000248 	.word	0x20000248
- 8001660:	20000250 	.word	0x20000250
- 8001664:	20000251 	.word	0x20000251
- 8001668:	20000252 	.word	0x20000252
- 800166c:	20000258 	.word	0x20000258
- 8001670:	2000025c 	.word	0x2000025c
- 8001674:	20000260 	.word	0x20000260
- 8001678:	20000253 	.word	0x20000253
+ 8001658:	200002b4 	.word	0x200002b4
+ 800165c:	200002b0 	.word	0x200002b0
+ 8001660:	200002b8 	.word	0x200002b8
+ 8001664:	200002b9 	.word	0x200002b9
+ 8001668:	200002ba 	.word	0x200002ba
+ 800166c:	200002c0 	.word	0x200002c0
+ 8001670:	200002c4 	.word	0x200002c4
+ 8001674:	200002c8 	.word	0x200002c8
+ 8001678:	200002bb 	.word	0x200002bb
  800167c:	48000800 	.word	0x48000800
- 8001680:	20000264 	.word	0x20000264
- 8001684:	20000265 	.word	0x20000265
- 8001688:	20000268 	.word	0x20000268
- 800168c:	2000026c 	.word	0x2000026c
+ 8001680:	200002cc 	.word	0x200002cc
+ 8001684:	200002cd 	.word	0x200002cd
+ 8001688:	200002d0 	.word	0x200002d0
+ 800168c:	200002d4 	.word	0x200002d4
 
 08001690 <Lesson_IsActive>:
 
@@ -3137,7 +3137,7 @@ bool Lesson_IsActive(void)
  800169c:	f85d 7b04 	ldr.w	r7, [sp], #4
  80016a0:	4770      	bx	lr
  80016a2:	bf00      	nop
- 80016a4:	20000252 	.word	0x20000252
+ 80016a4:	200002ba 	.word	0x200002ba
 
 080016a8 <ShowSummary>:
 
@@ -3270,11 +3270,11 @@ static void ShowSummary(void)
  80017ac:	3758      	adds	r7, #88	@ 0x58
  80017ae:	46bd      	mov	sp, r7
  80017b0:	e8bd 8fb0 	ldmia.w	sp!, {r4, r5, r7, r8, r9, sl, fp, pc}
- 80017b4:	200002c8 	.word	0x200002c8
- 80017b8:	20000260 	.word	0x20000260
- 80017bc:	20000258 	.word	0x20000258
- 80017c0:	0800ab6c 	.word	0x0800ab6c
- 80017c4:	0800ab78 	.word	0x0800ab78
+ 80017b4:	20000330 	.word	0x20000330
+ 80017b8:	200002c8 	.word	0x200002c8
+ 80017bc:	200002c0 	.word	0x200002c0
+ 80017c0:	0800ab58 	.word	0x0800ab58
+ 80017c4:	0800ab64 	.word	0x0800ab64
 
 080017c8 <EnterSummary>:
 
@@ -3293,7 +3293,7 @@ static void EnterSummary(void)
  80017d6:	bf00      	nop
  80017d8:	bd80      	pop	{r7, pc}
  80017da:	bf00      	nop
- 80017dc:	20000253 	.word	0x20000253
+ 80017dc:	200002bb 	.word	0x200002bb
 
 080017e0 <Lesson_HandleInput>:
 
@@ -3736,18 +3736,18 @@ void Lesson_HandleInput(uint8_t input)
  8001a82:	701a      	strb	r2, [r3, #0]
  8001a84:	e057      	b.n	8001b36 <Lesson_HandleInput+0x356>
  8001a86:	bf00      	nop
- 8001a88:	20000252 	.word	0x20000252
- 8001a8c:	20000253 	.word	0x20000253
+ 8001a88:	200002ba 	.word	0x200002ba
+ 8001a8c:	200002bb 	.word	0x200002bb
  8001a90:	48000800 	.word	0x48000800
- 8001a94:	20000264 	.word	0x20000264
- 8001a98:	20000265 	.word	0x20000265
- 8001a9c:	20000260 	.word	0x20000260
- 8001aa0:	20000248 	.word	0x20000248
- 8001aa4:	20000250 	.word	0x20000250
- 8001aa8:	20000254 	.word	0x20000254
- 8001aac:	20000258 	.word	0x20000258
- 8001ab0:	2000025c 	.word	0x2000025c
- 8001ab4:	2000024c 	.word	0x2000024c
+ 8001a94:	200002cc 	.word	0x200002cc
+ 8001a98:	200002cd 	.word	0x200002cd
+ 8001a9c:	200002c8 	.word	0x200002c8
+ 8001aa0:	200002b0 	.word	0x200002b0
+ 8001aa4:	200002b8 	.word	0x200002b8
+ 8001aa8:	200002bc 	.word	0x200002bc
+ 8001aac:	200002c0 	.word	0x200002c0
+ 8001ab0:	200002c4 	.word	0x200002c4
+ 8001ab4:	200002b4 	.word	0x200002b4
  8001ab8:	aaaaaaab 	.word	0xaaaaaaab
         }
     }
@@ -3835,13 +3835,13 @@ void Lesson_HandleInput(uint8_t input)
  8001b36:	3720      	adds	r7, #32
  8001b38:	46bd      	mov	sp, r7
  8001b3a:	bd80      	pop	{r7, pc}
- 8001b3c:	20000250 	.word	0x20000250
- 8001b40:	20000248 	.word	0x20000248
- 8001b44:	2000024c 	.word	0x2000024c
- 8001b48:	20000252 	.word	0x20000252
+ 8001b3c:	200002b8 	.word	0x200002b8
+ 8001b40:	200002b0 	.word	0x200002b0
+ 8001b44:	200002b4 	.word	0x200002b4
+ 8001b48:	200002ba 	.word	0x200002ba
  8001b4c:	48000800 	.word	0x48000800
- 8001b50:	20000264 	.word	0x20000264
- 8001b54:	20000265 	.word	0x20000265
+ 8001b50:	200002cc 	.word	0x200002cc
+ 8001b54:	200002cd 	.word	0x200002cd
 
 08001b58 <Lesson_Update>:
 /*
@@ -3905,11 +3905,11 @@ void Lesson_Update(void)
  8001bae:	3708      	adds	r7, #8
  8001bb0:	46bd      	mov	sp, r7
  8001bb2:	bd80      	pop	{r7, pc}
- 8001bb4:	20000264 	.word	0x20000264
- 8001bb8:	20000268 	.word	0x20000268
+ 8001bb4:	200002cc 	.word	0x200002cc
+ 8001bb8:	200002d0 	.word	0x200002d0
  8001bbc:	48000800 	.word	0x48000800
- 8001bc0:	20000265 	.word	0x20000265
- 8001bc4:	2000026c 	.word	0x2000026c
+ 8001bc0:	200002cd 	.word	0x200002cd
+ 8001bc4:	200002d4 	.word	0x200002d4
 
 08001bc8 <DisplaySongStep>:
 
@@ -4131,7 +4131,7 @@ static void DisplaySongStep(const SongStep *step)
  8001d1e:	3710      	adds	r7, #16
  8001d20:	46bd      	mov	sp, r7
  8001d22:	bd80      	pop	{r7, pc}
- 8001d24:	200002c8 	.word	0x200002c8
+ 8001d24:	20000330 	.word	0x20000330
 
 08001d28 <DisplayChordStep>:
 
@@ -4252,8 +4252,8 @@ static void DisplayChordStep(const Chord *chord)
  8001dde:	46bd      	mov	sp, r7
  8001de0:	bd80      	pop	{r7, pc}
  8001de2:	bf00      	nop
- 8001de4:	200002c8 	.word	0x200002c8
- 8001de8:	0800ab8c 	.word	0x0800ab8c
+ 8001de4:	20000330 	.word	0x20000330
+ 8001de8:	0800ab78 	.word	0x0800ab78
 
 08001dec <ITM_SendChar>:
            \li Is blocking when a debugger is connected, but the previous character sent has not been transmitted.
@@ -4523,23 +4523,23 @@ int main(void)
  8001f56:	f7fe fb57 	bl	8000608 <App_Update>
     MX_USB_HOST_Process();
  8001f5a:	e7a9      	b.n	8001eb0 <main+0x74>
- 8001f5c:	0800ab94 	.word	0x0800ab94
- 8001f60:	20000270 	.word	0x20000270
- 8001f64:	200002c8 	.word	0x200002c8
- 8001f68:	0800b158 	.word	0x0800b158
- 8001f6c:	0800b160 	.word	0x0800b160
- 8001f70:	0800b168 	.word	0x0800b168
- 8001f74:	0800b170 	.word	0x0800b170
- 8001f78:	0800b178 	.word	0x0800b178
- 8001f7c:	0800b180 	.word	0x0800b180
- 8001f80:	0800b188 	.word	0x0800b188
- 8001f84:	200006b4 	.word	0x200006b4
- 8001f88:	200002c4 	.word	0x200002c4
- 8001f8c:	0800abd4 	.word	0x0800abd4
- 8001f90:	0800ac04 	.word	0x0800ac04
- 8001f94:	0800ac34 	.word	0x0800ac34
- 8001f98:	0800ac6c 	.word	0x0800ac6c
- 8001f9c:	200002dc 	.word	0x200002dc
+ 8001f5c:	0800ab80 	.word	0x0800ab80
+ 8001f60:	200002d8 	.word	0x200002d8
+ 8001f64:	20000330 	.word	0x20000330
+ 8001f68:	0800b154 	.word	0x0800b154
+ 8001f6c:	0800b15c 	.word	0x0800b15c
+ 8001f70:	0800b164 	.word	0x0800b164
+ 8001f74:	0800b16c 	.word	0x0800b16c
+ 8001f78:	0800b174 	.word	0x0800b174
+ 8001f7c:	0800b17c 	.word	0x0800b17c
+ 8001f80:	0800b184 	.word	0x0800b184
+ 8001f84:	2000071c 	.word	0x2000071c
+ 8001f88:	2000032c 	.word	0x2000032c
+ 8001f8c:	0800abc0 	.word	0x0800abc0
+ 8001f90:	0800abf0 	.word	0x0800abf0
+ 8001f94:	0800ac20 	.word	0x0800ac20
+ 8001f98:	0800ac58 	.word	0x0800ac58
+ 8001f9c:	20000344 	.word	0x20000344
 
 08001fa0 <SystemClock_Config>:
 }
@@ -4753,7 +4753,7 @@ static void MX_I2C1_Init(void)
  80020d2:	bf00      	nop
  80020d4:	bd80      	pop	{r7, pc}
  80020d6:	bf00      	nop
- 80020d8:	20000270 	.word	0x20000270
+ 80020d8:	200002d8 	.word	0x200002d8
  80020dc:	40005400 	.word	0x40005400
  80020e0:	00b07cb4 	.word	0x00b07cb4
 
@@ -4921,6 +4921,8 @@ __STATIC_FORCEINLINE void __disable_irq(void)
  80021e8:	bf00      	nop
   __disable_irq();
   while (1)
+  {
+	  __NOP();
  80021ea:	bf00      	nop
  80021ec:	e7fd      	b.n	80021ea <Error_Handler+0x8>
 	...
@@ -5278,7 +5280,7 @@ void OTG_FS_IRQHandler(void)
  800235e:	bf00      	nop
  8002360:	bd80      	pop	{r7, pc}
  8002362:	bf00      	nop
- 8002364:	200006b8 	.word	0x200006b8
+ 8002364:	20000720 	.word	0x20000720
 
 08002368 <_read>:
   _kill(status, -1);
@@ -5530,8 +5532,8 @@ void *_sbrk(ptrdiff_t incr)
  800249e:	bd80      	pop	{r7, pc}
  80024a0:	20018000 	.word	0x20018000
  80024a4:	00000400 	.word	0x00000400
- 80024a8:	200002d4 	.word	0x200002d4
- 80024ac:	20000b68 	.word	0x20000b68
+ 80024a8:	2000033c 	.word	0x2000033c
+ 80024ac:	20000bd0 	.word	0x20000bd0
 
 080024b0 <SystemInit>:
   * @brief  Setup the microcontroller system.
@@ -5650,13 +5652,13 @@ LoopForever:
   ldr r0, =_sdata
  8002510:	20000000 	.word	0x20000000
   ldr r1, =_edata
- 8002514:	20000204 	.word	0x20000204
+ 8002514:	2000026c 	.word	0x2000026c
   ldr r2, =_sidata
- 8002518:	0800b218 	.word	0x0800b218
+ 8002518:	0800b214 	.word	0x0800b214
   ldr r2, =_sbss
- 800251c:	20000204 	.word	0x20000204
+ 800251c:	2000026c 	.word	0x2000026c
   ldr r4, =_ebss
- 8002520:	20000b64 	.word	0x20000b64
+ 8002520:	20000bcc 	.word	0x20000bcc
 
 08002524 <ADC1_2_IRQHandler>:
  * @retval : None
@@ -5816,9 +5818,9 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
  80025ce:	46bd      	mov	sp, r7
  80025d0:	bd80      	pop	{r7, pc}
  80025d2:	bf00      	nop
- 80025d4:	20000184 	.word	0x20000184
- 80025d8:	2000017c 	.word	0x2000017c
- 80025dc:	20000180 	.word	0x20000180
+ 80025d4:	200001ec 	.word	0x200001ec
+ 80025d8:	200001e4 	.word	0x200001e4
+ 80025dc:	200001e8 	.word	0x200001e8
 
 080025e0 <HAL_IncTick>:
  * @note This function is declared as __weak to be overwritten in case of other
@@ -5844,8 +5846,8 @@ __weak void HAL_IncTick(void)
  80025f8:	f85d 7b04 	ldr.w	r7, [sp], #4
  80025fc:	4770      	bx	lr
  80025fe:	bf00      	nop
- 8002600:	20000184 	.word	0x20000184
- 8002604:	200002d8 	.word	0x200002d8
+ 8002600:	200001ec 	.word	0x200001ec
+ 8002604:	20000340 	.word	0x20000340
 
 08002608 <HAL_GetTick>:
   * @note This function is declared as __weak to be overwritten in case of other
@@ -5865,7 +5867,7 @@ __weak uint32_t HAL_GetTick(void)
  8002614:	f85d 7b04 	ldr.w	r7, [sp], #4
  8002618:	4770      	bx	lr
  800261a:	bf00      	nop
- 800261c:	200002d8 	.word	0x200002d8
+ 800261c:	20000340 	.word	0x20000340
 
 08002620 <HAL_Delay>:
   *       implementations in user file.
@@ -5918,7 +5920,7 @@ __weak void HAL_Delay(uint32_t Delay)
  800265e:	46bd      	mov	sp, r7
  8002660:	bd80      	pop	{r7, pc}
  8002662:	bf00      	nop
- 8002664:	20000184 	.word	0x20000184
+ 8002664:	200001ec 	.word	0x200001ec
 
 08002668 <__NVIC_SetPriorityGrouping>:
 {
@@ -12366,7 +12368,7 @@ HAL_StatusTypeDef HAL_PWREx_ControlVoltageScaling(uint32_t VoltageScaling)
  8004ee4:	4770      	bx	lr
  8004ee6:	bf00      	nop
  8004ee8:	40007000 	.word	0x40007000
- 8004eec:	2000017c 	.word	0x2000017c
+ 8004eec:	200001e4 	.word	0x200001e4
  8004ef0:	431bde83 	.word	0x431bde83
 
 08004ef4 <HAL_PWREx_EnableVddUSB>:
@@ -12811,9 +12813,9 @@ HAL_StatusTypeDef HAL_RCC_OscConfig(RCC_OscInitTypeDef  *RCC_OscInitStruct)
  8005180:	e014      	b.n	80051ac <HAL_RCC_OscConfig+0x298>
  8005182:	bf00      	nop
  8005184:	40021000 	.word	0x40021000
- 8005188:	0800b194 	.word	0x0800b194
- 800518c:	2000017c 	.word	0x2000017c
- 8005190:	20000180 	.word	0x20000180
+ 8005188:	0800b190 	.word	0x0800b190
+ 800518c:	200001e4 	.word	0x200001e4
+ 8005190:	200001e8 	.word	0x200001e8
  8005194:	4ba0      	ldr	r3, [pc, #640]	@ (8005418 <HAL_RCC_OscConfig+0x504>)
  8005196:	681b      	ldr	r3, [r3, #0]
  8005198:	4a9f      	ldr	r2, [pc, #636]	@ (8005418 <HAL_RCC_OscConfig+0x504>)
@@ -14116,9 +14118,9 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(const RCC_ClkInitTypeDef  *RCC_ClkInitStru
  80058b6:	bd80      	pop	{r7, pc}
  80058b8:	40022000 	.word	0x40022000
  80058bc:	40021000 	.word	0x40021000
- 80058c0:	0800b194 	.word	0x0800b194
- 80058c4:	2000017c 	.word	0x2000017c
- 80058c8:	20000180 	.word	0x20000180
+ 80058c0:	0800b190 	.word	0x0800b190
+ 80058c4:	200001e4 	.word	0x200001e4
+ 80058c8:	200001e8 	.word	0x200001e8
 
 080058cc <HAL_RCC_GetSysClockFreq>:
   *
@@ -14321,7 +14323,7 @@ uint32_t HAL_RCC_GetSysClockFreq(void)
  80059d0:	4770      	bx	lr
  80059d2:	bf00      	nop
  80059d4:	40021000 	.word	0x40021000
- 80059d8:	0800b1a4 	.word	0x0800b1a4
+ 80059d8:	0800b1a0 	.word	0x0800b1a0
  80059dc:	00f42400 	.word	0x00f42400
  80059e0:	007a1200 	.word	0x007a1200
 
@@ -19110,13 +19112,13 @@ static USBH_StatusTypeDef USBH_MIDI_Init(USBH_HandleTypeDef *phost)
  800749a:	46bd      	mov	sp, r7
  800749c:	bd90      	pop	{r4, r7, pc}
  800749e:	bf00      	nop
- 80074a0:	0800aca0 	.word	0x0800aca0
- 80074a4:	0800acd8 	.word	0x0800acd8
- 80074a8:	0800ad0c 	.word	0x0800ad0c
- 80074ac:	0800ad4c 	.word	0x0800ad4c
- 80074b0:	0800ad9c 	.word	0x0800ad9c
- 80074b4:	0800adf0 	.word	0x0800adf0
- 80074b8:	0800ae2c 	.word	0x0800ae2c
+ 80074a0:	0800ac9c 	.word	0x0800ac9c
+ 80074a4:	0800acd4 	.word	0x0800acd4
+ 80074a8:	0800ad08 	.word	0x0800ad08
+ 80074ac:	0800ad48 	.word	0x0800ad48
+ 80074b0:	0800ad98 	.word	0x0800ad98
+ 80074b4:	0800adec 	.word	0x0800adec
+ 80074b8:	0800ae28 	.word	0x0800ae28
 
 080074bc <USBH_MIDI_DeInit>:
  * @brief USBH MIDI DeInit callback (called on device disconnection).
@@ -19240,10 +19242,10 @@ static USBH_StatusTypeDef USBH_MIDI_DeInit(USBH_HandleTypeDef *phost)
  8007566:	46bd      	mov	sp, r7
  8007568:	bd80      	pop	{r7, pc}
  800756a:	bf00      	nop
- 800756c:	0800ae68 	.word	0x0800ae68
- 8007570:	0800ae9c 	.word	0x0800ae9c
- 8007574:	0800aed0 	.word	0x0800aed0
- 8007578:	0800af04 	.word	0x0800af04
+ 800756c:	0800ae64 	.word	0x0800ae64
+ 8007570:	0800ae98 	.word	0x0800ae98
+ 8007574:	0800aecc 	.word	0x0800aecc
+ 8007578:	0800af00 	.word	0x0800af00
 
 0800757c <USBH_MIDI_ClassRequest>:
  *
@@ -19596,15 +19598,15 @@ static USBH_StatusTypeDef USBH_MIDI_Process(USBH_HandleTypeDef *phost)
  8007776:	46bd      	mov	sp, r7
  8007778:	bd80      	pop	{r7, pc}
  800777a:	bf00      	nop
- 800777c:	0800af34 	.word	0x0800af34
- 8007780:	0800af70 	.word	0x0800af70
- 8007784:	0800afb0 	.word	0x0800afb0
- 8007788:	0800afe4 	.word	0x0800afe4
- 800778c:	0800b018 	.word	0x0800b018
- 8007790:	0800b054 	.word	0x0800b054
- 8007794:	0800b094 	.word	0x0800b094
- 8007798:	0800b0e0 	.word	0x0800b0e0
- 800779c:	0800b11c 	.word	0x0800b11c
+ 800777c:	0800af30 	.word	0x0800af30
+ 8007780:	0800af6c 	.word	0x0800af6c
+ 8007784:	0800afac 	.word	0x0800afac
+ 8007788:	0800afe0 	.word	0x0800afe0
+ 800778c:	0800b014 	.word	0x0800b014
+ 8007790:	0800b050 	.word	0x0800b050
+ 8007794:	0800b090 	.word	0x0800b090
+ 8007798:	0800b0dc 	.word	0x0800b0dc
+ 800779c:	0800b118 	.word	0x0800b118
 
 080077a0 <USBH_MIDI_SOFProcess>:
  * @brief SOF callback (not used in this driver).
@@ -24314,8 +24316,8 @@ void MX_USB_HOST_Init(void)
 {
  800910c:	b580      	push	{r7, lr}
  800910e:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN USB_HOST_Init_PreTreatment */
-
+  *	it change every time during generating code via STM32CubeMX
+  */
   /* USER CODE END USB_HOST_Init_PreTreatment */
 
   /* Init host Library, add supported class and start the library. */
@@ -24359,8 +24361,8 @@ void MX_USB_HOST_Init(void)
  8009148:	bd80      	pop	{r7, pc}
  800914a:	bf00      	nop
  800914c:	0800916d 	.word	0x0800916d
- 8009150:	200002dc 	.word	0x200002dc
- 8009154:	20000188 	.word	0x20000188
+ 8009150:	20000344 	.word	0x20000344
+ 8009154:	200001f0 	.word	0x200001f0
 
 08009158 <MX_USB_HOST_Process>:
 
@@ -24379,7 +24381,7 @@ void MX_USB_HOST_Process(void)
  8009162:	bf00      	nop
  8009164:	bd80      	pop	{r7, pc}
  8009166:	bf00      	nop
- 8009168:	200002dc 	.word	0x200002dc
+ 8009168:	20000344 	.word	0x20000344
 
 0800916c <USBH_UserProcess>:
 /*
@@ -24447,7 +24449,7 @@ static void USBH_UserProcess  (USBH_HandleTypeDef *phost, uint8_t id)
  80091bc:	f85d 7b04 	ldr.w	r7, [sp], #4
  80091c0:	4770      	bx	lr
  80091c2:	bf00      	nop
- 80091c4:	200006b4 	.word	0x200006b4
+ 80091c4:	2000071c 	.word	0x2000071c
 
 080091c8 <HAL_HCD_MspInit>:
                        LL Driver Callbacks (HCD -> USB Host Library)
@@ -24842,7 +24844,7 @@ USBH_StatusTypeDef USBH_LL_Init(USBH_HandleTypeDef *phost)
  8009402:	46bd      	mov	sp, r7
  8009404:	bd80      	pop	{r7, pc}
  8009406:	bf00      	nop
- 8009408:	200006b8 	.word	0x200006b8
+ 8009408:	20000720 	.word	0x20000720
 
 0800940c <USBH_LL_Start>:
   * @brief  Start the low level portion of the host driver.
@@ -25444,7 +25446,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009734:	6818      	ldr	r0, [r3, #0]
  8009736:	f000 b82d 	b.w	8009794 <_malloc_r>
  800973a:	bf00      	nop
- 800973c:	200001b4 	.word	0x200001b4
+ 800973c:	2000021c 	.word	0x2000021c
 
 08009740 <free>:
  8009740:	4b02      	ldr	r3, [pc, #8]	@ (800974c <free+0xc>)
@@ -25452,7 +25454,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009744:	6818      	ldr	r0, [r3, #0]
  8009746:	f000 bb7d 	b.w	8009e44 <_free_r>
  800974a:	bf00      	nop
- 800974c:	200001b4 	.word	0x200001b4
+ 800974c:	2000021c 	.word	0x2000021c
 
 08009750 <sbrk_aligned>:
  8009750:	b570      	push	{r4, r5, r6, lr}
@@ -25482,7 +25484,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800978a:	d1f2      	bne.n	8009772 <sbrk_aligned+0x22>
  800978c:	e7ef      	b.n	800976e <sbrk_aligned+0x1e>
  800978e:	bf00      	nop
- 8009790:	20000a18 	.word	0x20000a18
+ 8009790:	20000a80 	.word	0x20000a80
 
 08009794 <_malloc_r>:
  8009794:	e92d 43f8 	stmdb	sp!, {r3, r4, r5, r6, r7, r8, r9, lr}
@@ -25592,19 +25594,19 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800988a:	6005      	str	r5, [r0, #0]
  800988c:	e7d6      	b.n	800983c <_malloc_r+0xa8>
  800988e:	bf00      	nop
- 8009890:	20000a1c 	.word	0x20000a1c
+ 8009890:	20000a84 	.word	0x20000a84
 
 08009894 <__malloc_lock>:
  8009894:	4801      	ldr	r0, [pc, #4]	@ (800989c <__malloc_lock+0x8>)
  8009896:	f000 bad2 	b.w	8009e3e <__retarget_lock_acquire_recursive>
  800989a:	bf00      	nop
- 800989c:	20000b60 	.word	0x20000b60
+ 800989c:	20000bc8 	.word	0x20000bc8
 
 080098a0 <__malloc_unlock>:
  80098a0:	4801      	ldr	r0, [pc, #4]	@ (80098a8 <__malloc_unlock+0x8>)
  80098a2:	f000 bacd 	b.w	8009e40 <__retarget_lock_release_recursive>
  80098a6:	bf00      	nop
- 80098a8:	20000b60 	.word	0x20000b60
+ 80098a8:	20000bc8 	.word	0x20000bc8
 
 080098ac <std>:
  80098ac:	2300      	movs	r3, #0
@@ -25648,7 +25650,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009908:	08009b9f 	.word	0x08009b9f
  800990c:	08009bd7 	.word	0x08009bd7
  8009910:	08009bfb 	.word	0x08009bfb
- 8009914:	20000a20 	.word	0x20000a20
+ 8009914:	20000a88 	.word	0x20000a88
 
 08009918 <stdio_exit_handler>:
  8009918:	4a02      	ldr	r2, [pc, #8]	@ (8009924 <stdio_exit_handler+0xc>)
@@ -25656,9 +25658,9 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800991c:	4803      	ldr	r0, [pc, #12]	@ (800992c <stdio_exit_handler+0x14>)
  800991e:	f000 b869 	b.w	80099f4 <_fwalk_sglue>
  8009922:	bf00      	nop
- 8009924:	200001a8 	.word	0x200001a8
+ 8009924:	20000210 	.word	0x20000210
  8009928:	0800a82d 	.word	0x0800a82d
- 800992c:	200001b8 	.word	0x200001b8
+ 800992c:	20000220 	.word	0x20000220
 
 08009930 <cleanup_stdio>:
  8009930:	6841      	ldr	r1, [r0, #4]
@@ -25683,9 +25685,9 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800995c:	f000 bf66 	b.w	800a82c <_fflush_r>
  8009960:	bd10      	pop	{r4, pc}
  8009962:	bf00      	nop
- 8009964:	20000a20 	.word	0x20000a20
- 8009968:	20000a88 	.word	0x20000a88
- 800996c:	20000af0 	.word	0x20000af0
+ 8009964:	20000a88 	.word	0x20000a88
+ 8009968:	20000af0 	.word	0x20000af0
+ 800996c:	20000b58 	.word	0x20000b58
 
 08009970 <global_stdio_init.part.0>:
  8009970:	b510      	push	{r4, lr}
@@ -25706,21 +25708,21 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009996:	e8bd 4010 	ldmia.w	sp!, {r4, lr}
  800999a:	2112      	movs	r1, #18
  800999c:	f7ff bf86 	b.w	80098ac <std>
- 80099a0:	20000b58 	.word	0x20000b58
- 80099a4:	20000a20 	.word	0x20000a20
+ 80099a0:	20000bc0 	.word	0x20000bc0
+ 80099a4:	20000a88 	.word	0x20000a88
  80099a8:	08009919 	.word	0x08009919
 
 080099ac <__sfp_lock_acquire>:
  80099ac:	4801      	ldr	r0, [pc, #4]	@ (80099b4 <__sfp_lock_acquire+0x8>)
  80099ae:	f000 ba46 	b.w	8009e3e <__retarget_lock_acquire_recursive>
  80099b2:	bf00      	nop
- 80099b4:	20000b61 	.word	0x20000b61
+ 80099b4:	20000bc9 	.word	0x20000bc9
 
 080099b8 <__sfp_lock_release>:
  80099b8:	4801      	ldr	r0, [pc, #4]	@ (80099c0 <__sfp_lock_release+0x8>)
  80099ba:	f000 ba41 	b.w	8009e40 <__retarget_lock_release_recursive>
  80099be:	bf00      	nop
- 80099c0:	20000b61 	.word	0x20000b61
+ 80099c0:	20000bc9 	.word	0x20000bc9
 
 080099c4 <__sinit>:
  80099c4:	b510      	push	{r4, lr}
@@ -25740,7 +25742,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  80099e8:	e7f2      	b.n	80099d0 <__sinit+0xc>
  80099ea:	bf00      	nop
  80099ec:	08009931 	.word	0x08009931
- 80099f0:	20000b58 	.word	0x20000b58
+ 80099f0:	20000bc0 	.word	0x20000bc0
 
 080099f4 <_fwalk_sglue>:
  80099f4:	e92d 43f8 	stmdb	sp!, {r3, r4, r5, r6, r7, r8, r9, lr}
@@ -25783,7 +25785,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009a48:	f85d eb04 	ldr.w	lr, [sp], #4
  8009a4c:	b004      	add	sp, #16
  8009a4e:	4770      	bx	lr
- 8009a50:	200001b4 	.word	0x200001b4
+ 8009a50:	2000021c 	.word	0x2000021c
 
 08009a54 <_puts_r>:
  8009a54:	6a03      	ldr	r3, [r0, #32]
@@ -25871,7 +25873,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009b04:	6818      	ldr	r0, [r3, #0]
  8009b06:	f7ff bfa5 	b.w	8009a54 <_puts_r>
  8009b0a:	bf00      	nop
- 8009b0c:	200001b4 	.word	0x200001b4
+ 8009b0c:	2000021c 	.word	0x2000021c
 
 08009b10 <sniprintf>:
  8009b10:	b40c      	push	{r2, r3}
@@ -25917,7 +25919,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009b72:	2200      	movs	r2, #0
  8009b74:	701a      	strb	r2, [r3, #0]
  8009b76:	e7d6      	b.n	8009b26 <sniprintf+0x16>
- 8009b78:	200001b4 	.word	0x200001b4
+ 8009b78:	2000021c 	.word	0x2000021c
 
 08009b7c <__sread>:
  8009b7c:	b510      	push	{r4, lr}
@@ -26109,7 +26111,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009d22:	e7f4      	b.n	8009d0e <__swsetup_r+0x8e>
  8009d24:	2000      	movs	r0, #0
  8009d26:	e7f7      	b.n	8009d18 <__swsetup_r+0x98>
- 8009d28:	200001b4 	.word	0x200001b4
+ 8009d28:	2000021c 	.word	0x2000021c
 
 08009d2c <memset>:
  8009d2c:	4402      	add	r2, r0
@@ -26134,7 +26136,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009d52:	b103      	cbz	r3, 8009d56 <_close_r+0x1a>
  8009d54:	6023      	str	r3, [r4, #0]
  8009d56:	bd38      	pop	{r3, r4, r5, pc}
- 8009d58:	20000b5c 	.word	0x20000b5c
+ 8009d58:	20000bc4 	.word	0x20000bc4
 
 08009d5c <_lseek_r>:
  8009d5c:	b538      	push	{r3, r4, r5, lr}
@@ -26152,7 +26154,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009d76:	b103      	cbz	r3, 8009d7a <_lseek_r+0x1e>
  8009d78:	6023      	str	r3, [r4, #0]
  8009d7a:	bd38      	pop	{r3, r4, r5, pc}
- 8009d7c:	20000b5c 	.word	0x20000b5c
+ 8009d7c:	20000bc4 	.word	0x20000bc4
 
 08009d80 <_read_r>:
  8009d80:	b538      	push	{r3, r4, r5, lr}
@@ -26170,7 +26172,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009d9a:	b103      	cbz	r3, 8009d9e <_read_r+0x1e>
  8009d9c:	6023      	str	r3, [r4, #0]
  8009d9e:	bd38      	pop	{r3, r4, r5, pc}
- 8009da0:	20000b5c 	.word	0x20000b5c
+ 8009da0:	20000bc4 	.word	0x20000bc4
 
 08009da4 <_sbrk_r>:
  8009da4:	b538      	push	{r3, r4, r5, lr}
@@ -26186,7 +26188,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009dba:	b103      	cbz	r3, 8009dbe <_sbrk_r+0x1a>
  8009dbc:	6023      	str	r3, [r4, #0]
  8009dbe:	bd38      	pop	{r3, r4, r5, pc}
- 8009dc0:	20000b5c 	.word	0x20000b5c
+ 8009dc0:	20000bc4 	.word	0x20000bc4
 
 08009dc4 <_write_r>:
  8009dc4:	b538      	push	{r3, r4, r5, lr}
@@ -26204,14 +26206,14 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009dde:	b103      	cbz	r3, 8009de2 <_write_r+0x1e>
  8009de0:	6023      	str	r3, [r4, #0]
  8009de2:	bd38      	pop	{r3, r4, r5, pc}
- 8009de4:	20000b5c 	.word	0x20000b5c
+ 8009de4:	20000bc4 	.word	0x20000bc4
 
 08009de8 <__errno>:
  8009de8:	4b01      	ldr	r3, [pc, #4]	@ (8009df0 <__errno+0x8>)
  8009dea:	6818      	ldr	r0, [r3, #0]
  8009dec:	4770      	bx	lr
  8009dee:	bf00      	nop
- 8009df0:	200001b4 	.word	0x200001b4
+ 8009df0:	2000021c 	.word	0x2000021c
 
 08009df4 <__libc_init_array>:
  8009df4:	b570      	push	{r4, r5, r6, lr}
@@ -26239,10 +26241,10 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009e26:	4798      	blx	r3
  8009e28:	3601      	adds	r6, #1
  8009e2a:	e7f2      	b.n	8009e12 <__libc_init_array+0x1e>
- 8009e2c:	0800b210 	.word	0x0800b210
- 8009e30:	0800b210 	.word	0x0800b210
- 8009e34:	0800b210 	.word	0x0800b210
- 8009e38:	0800b214 	.word	0x0800b214
+ 8009e2c:	0800b20c 	.word	0x0800b20c
+ 8009e30:	0800b20c 	.word	0x0800b20c
+ 8009e34:	0800b20c 	.word	0x0800b20c
+ 8009e38:	0800b210 	.word	0x0800b210
 
 08009e3c <__retarget_lock_init_recursive>:
  8009e3c:	4770      	bx	lr
@@ -26323,7 +26325,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8009ece:	e7ca      	b.n	8009e66 <_free_r+0x22>
  8009ed0:	bd38      	pop	{r3, r4, r5, pc}
  8009ed2:	bf00      	nop
- 8009ed4:	20000a1c 	.word	0x20000a1c
+ 8009ed4:	20000a84 	.word	0x20000a84
 
 08009ed8 <__ssputs_r>:
  8009ed8:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -26600,11 +26602,11 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800a16c:	4638      	mov	r0, r7
  800a16e:	f000 f9bb 	bl	800a4e8 <_printf_i>
  800a172:	e7ed      	b.n	800a150 <_svfiprintf_r+0x1c0>
- 800a174:	0800b1d4 	.word	0x0800b1d4
- 800a178:	0800b1de 	.word	0x0800b1de
+ 800a174:	0800b1d0 	.word	0x0800b1d0
+ 800a178:	0800b1da 	.word	0x0800b1da
  800a17c:	00000000 	.word	0x00000000
  800a180:	08009ed9 	.word	0x08009ed9
- 800a184:	0800b1da 	.word	0x0800b1da
+ 800a184:	0800b1d6 	.word	0x0800b1d6
 
 0800a188 <__sfputc_r>:
  800a188:	6893      	ldr	r3, [r2, #8]
@@ -26870,11 +26872,11 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800a3f0:	4630      	mov	r0, r6
  800a3f2:	f000 f879 	bl	800a4e8 <_printf_i>
  800a3f6:	e7e4      	b.n	800a3c2 <_vfiprintf_r+0x1e6>
- 800a3f8:	0800b1d4 	.word	0x0800b1d4
- 800a3fc:	0800b1de 	.word	0x0800b1de
+ 800a3f8:	0800b1d0 	.word	0x0800b1d0
+ 800a3fc:	0800b1da 	.word	0x0800b1da
  800a400:	00000000 	.word	0x00000000
  800a404:	0800a1b7 	.word	0x0800a1b7
- 800a408:	0800b1da 	.word	0x0800b1da
+ 800a408:	0800b1d6 	.word	0x0800b1d6
 
 0800a40c <_printf_common>:
  800a40c:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -27203,8 +27205,8 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800a714:	2500      	movs	r5, #0
  800a716:	f104 0619 	add.w	r6, r4, #25
  800a71a:	e7f5      	b.n	800a708 <_printf_i+0x220>
- 800a71c:	0800b1e5 	.word	0x0800b1e5
- 800a720:	0800b1f6 	.word	0x0800b1f6
+ 800a71c:	0800b1e1 	.word	0x0800b1e1
+ 800a720:	0800b1f2 	.word	0x0800b1f2
 
 0800a724 <__sflush_r>:
  800a724:	f9b1 200c 	ldrsh.w	r2, [r1, #12]
@@ -27484,7 +27486,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800a98e:	6023      	str	r3, [r4, #0]
  800a990:	bd38      	pop	{r3, r4, r5, pc}
  800a992:	bf00      	nop
- 800a994:	20000b5c 	.word	0x20000b5c
+ 800a994:	20000bc4 	.word	0x20000bc4
 
 0800a998 <_isatty_r>:
  800a998:	b538      	push	{r3, r4, r5, lr}
@@ -27500,7 +27502,7 @@ USBH_StatusTypeDef USBH_Get_USB_Status(HAL_StatusTypeDef hal_status)
  800a9ae:	b103      	cbz	r3, 800a9b2 <_isatty_r+0x1a>
  800a9b0:	6023      	str	r3, [r4, #0]
  800a9b2:	bd38      	pop	{r3, r4, r5, pc}
- 800a9b4:	20000b5c 	.word	0x20000b5c
+ 800a9b4:	20000bc4 	.word	0x20000bc4
 
 0800a9b8 <memcpy>:
  800a9b8:	440a      	add	r2, r1

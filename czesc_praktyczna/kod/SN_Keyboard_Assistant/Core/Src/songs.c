@@ -33,6 +33,37 @@ static SongStep marySteps[] = {
     { 3, { { 'E', ACC_NONE, 64, LEN_QUARTER }, { 'E', ACC_NONE, 64, LEN_QUARTER }, { 'E', ACC_NONE, 64, LEN_HALF } } }
 };
 
+/* "Chromatic Study" – longer exercise with sharps and flats */
+static SongStep chromaticSteps[] = {
+    /* C – D */
+    { 2, { { 'C', ACC_NONE, 60, LEN_QUARTER },
+           { 'D', ACC_NONE, 62, LEN_QUARTER } } },
+
+    /* E – F */
+    { 2, { { 'E', ACC_NONE, 64, LEN_QUARTER },
+           { 'F', ACC_NONE, 65, LEN_QUARTER } } },
+
+    /* F# – G – A */
+    { 3, { { 'F', ACC_SHARP, 66, LEN_EIGHTH },
+           { 'G', ACC_NONE,  67, LEN_EIGHTH },
+           { 'A', ACC_NONE,  69, LEN_QUARTER } } },
+
+    /* Bb – A */
+    { 2, { { 'B', ACC_FLAT, 70, LEN_QUARTER },
+           { 'A', ACC_NONE, 69, LEN_QUARTER } } },
+
+    /* G – F# */
+    { 2, { { 'G', ACC_NONE,  67, LEN_QUARTER },
+           { 'F', ACC_SHARP, 66, LEN_QUARTER } } },
+
+    /* Step with both SHARP and FLAT */
+    { 2, { { 'F', ACC_SHARP, 66, LEN_QUARTER },
+           { 'B', ACC_FLAT,  70, LEN_QUARTER } } },
+
+    /* Final C */
+    { 1, { { 'C', ACC_NONE, 72, LEN_HALF } } }
+};
+
 /*
  * Exported songs registry.
  * IMPORTANT: direct initialization is a constant initializer.
@@ -44,7 +75,12 @@ Song songs[] = {
 
     { "Mary Had a Lamb",
       (uint8_t)(sizeof(marySteps) / sizeof(marySteps[0])),
-      marySteps }
+      marySteps },
+
+    { "Chroma Study",
+          (uint8_t)(sizeof(chromaticSteps) / sizeof(chromaticSteps[0])),
+          chromaticSteps }
+
 };
 
 const uint8_t SONG_COUNT = (uint8_t)(sizeof(songs) / sizeof(songs[0]));

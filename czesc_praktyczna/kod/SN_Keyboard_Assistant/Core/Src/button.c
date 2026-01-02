@@ -1,5 +1,6 @@
 #include "button.h"
 #include "stm32l4xx_hal.h"
+#include "main.h"
 
 /**
  * @file button.c
@@ -14,15 +15,6 @@
  * - A press event is generated only on a stable transition: released -> pressed.
  */
 
-/* GPIO mapping (current project pins) */
-#define BTN_NEXT_PORT   GPIOA
-#define BTN_NEXT_PIN    GPIO_PIN_1
-
-#define BTN_OK_PORT     GPIOA
-#define BTN_OK_PIN      GPIO_PIN_4
-
-#define BTN_RESET_PORT  GPIOB
-#define BTN_RESET_PIN   GPIO_PIN_0
 
 /* Debounce time threshold (milliseconds) */
 #define DEBOUNCE_MS  30U

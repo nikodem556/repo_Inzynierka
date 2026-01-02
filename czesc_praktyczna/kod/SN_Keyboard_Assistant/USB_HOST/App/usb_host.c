@@ -70,6 +70,12 @@ void MX_USB_HOST_Init(void)
 {
   /* USER CODE BEGIN USB_HOST_Init_PreTreatment */
 
+/** *** VERY IMPORTANT ***
+  *	remember to change: if (USBH_RegisterClass(&hUsbHostFS, USBH_HID_CLASS) != USBH_OK)
+  *	to
+  *	(USBH_RegisterClass(&hUsbHostFS, USBH_MIDI_CLASS) != USBH_OK)
+  *	it change every time during generating code via STM32CubeMX
+  */
   /* USER CODE END USB_HOST_Init_PreTreatment */
 
   /* Init host Library, add supported class and start the library. */

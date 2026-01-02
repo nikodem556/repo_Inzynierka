@@ -247,9 +247,9 @@ static void DisplayMainMenu(void)
     GroveLCD_SetCursor(&lcd, 0, 0);
 
     /* Print the currently selected main-menu entry */
-    if (mainMenuIndex == 0) GroveLCD_Print(&lcd, "Notes symbol");
+    if (mainMenuIndex == 0) GroveLCD_Print(&lcd, "Icons");
     else if (mainMenuIndex == 1) GroveLCD_Print(&lcd, "Songs");
-    else GroveLCD_Print(&lcd, "Basic chords");
+    else GroveLCD_Print(&lcd, "Chords");
 
     /* Optional header label on the right side */
     GroveLCD_SetCursor(&lcd, 0, 12);
@@ -280,7 +280,7 @@ static void DisplayNotesLegend(void)
     LCD_WriteCustom(2);
     LCD_WriteCustom(3);
     LCD_WriteCustom(4);
-    GroveLCD_Print(&lcd, "  RESET=Back");
+    GroveLCD_Print(&lcd, " RESET=Back");
 }
 
 static void DisplaySongsList(void)
